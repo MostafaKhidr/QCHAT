@@ -1,7 +1,14 @@
 import { useState, useCallback } from 'react';
 import { mchatAPI } from '../services/mchat-api';
+import qchatAPI from '../services/qchat-api';
 import useSessionStore from '../store/sessionStore';
-import type { CreateSessionRequest, LocalSession, APIError } from '../types/api.types';
+import type {
+  CreateSessionRequest,
+  LocalSession,
+  APIError,
+  QChatCreateSessionRequest,
+  QChatLocalSession,
+} from '../types/api.types';
 
 /**
  * Custom hook for session management
@@ -101,6 +108,42 @@ export const useSession = () => {
   }, [loadSession, setCurrentSession, addToHistory]);
 
   /**
+   * Create a new Q-CHAT session (simplified, no MRN required)
+   */
+  const createQChatSession = useCallback(async (data: QChatCreateSessionRequest): Promise<string | null> => {
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const response = await qchatAPI.createSession(data);
+
+      // Create local session object for Q-CHAT
+      const localSession: QChatLocalSession = {
+        session_token: response.session_token,
+        child_name: response.child_name,
+        child_age_months: response.child_age_months,
+        parent_name: data.parent_name,
+        language: data.language,
+        status: 'created',
+        created_at: response.created_at,
+        current_question: 1,
+      };
+
+      // Store in state (we can reuse the same store structure)
+      setCurrentSession(localSession as any, response.session_token);
+      addToHistory(localSession as any);
+
+      setIsCreating(false);
+      return response.session_token;
+    } catch (error) {
+      const apiError = error as APIError;
+      setCreateError(apiError.detail || 'Failed to create Q-CHAT session');
+      setIsCreating(false);
+      return null;
+    }
+  }, [setCurrentSession, addToHistory]);
+
+  /**
    * End current session
    */
   const endSession = useCallback(() => {
@@ -116,6 +159,7 @@ export const useSession = () => {
 
     // Actions
     createSession,
+    createQChatSession,
     resumeSession,
     endSession,
   };

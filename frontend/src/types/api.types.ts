@@ -192,3 +192,103 @@ export interface ContactFormData {
   preferredLanguage: LanguageType;
   message?: string;
 }
+
+// ==================== Q-CHAT-10 Types ====================
+
+export enum QChatAnswerOption {
+  A = 'A',
+  B = 'B',
+  C = 'C',
+  D = 'D',
+  E = 'E',
+}
+
+export interface QChatCreateSessionRequest {
+  child_name: string;
+  child_age_months: number;
+  parent_name?: string;
+  language: LanguageType;
+}
+
+export interface QChatCreateSessionResponse {
+  session_token: string;
+  child_name: string;
+  child_age_months: number;
+  created_at: string;
+}
+
+export interface QChatQuestionOption {
+  value: string; // A, B, C, D, E
+  label_en: string;
+  label_ar: string;
+}
+
+export interface QChatQuestion {
+  question_number: number;
+  text_en: string;
+  text_ar: string;
+  options: QChatQuestionOption[];
+  video_positive: string | null;
+  video_negative: string | null;
+}
+
+export interface QChatAnswer {
+  question_number: number;
+  selected_option: string; // A, B, C, D, E
+  option_label: string;
+  scored_point: boolean;
+  answered_at: string;
+}
+
+export interface QChatSessionResponse {
+  session_token: string;
+  child_name: string;
+  child_age_months: number;
+  parent_name: string | null;
+  language: string;
+  status: SessionStatus;
+  current_question: number;
+  total_questions: number;
+  answers: QChatAnswer[];
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface QChatSubmitAnswerRequest {
+  question_number: number;
+  selected_option: QChatAnswerOption;
+}
+
+export interface QChatSubmitAnswerResponse {
+  accepted: boolean;
+  next_question_number: number | null;
+  is_complete: boolean;
+  current_score: number;
+}
+
+export interface QChatReport {
+  session_token: string;
+  child_name: string;
+  child_age_months: number;
+  parent_name: string | null;
+  total_score: number;
+  max_score: number;
+  recommend_referral: boolean;
+  risk_level: string; // "low" | "high"
+  answers: QChatAnswer[];
+  recommendations: string[];
+  completed_at: string;
+}
+
+export interface QChatLocalSession {
+  session_token: string;
+  child_name: string;
+  child_age_months: number;
+  parent_name?: string;
+  language: LanguageType;
+  status: SessionStatus;
+  created_at: string;
+  current_question: number;
+  total_score?: number;
+  recommend_referral?: boolean;
+}

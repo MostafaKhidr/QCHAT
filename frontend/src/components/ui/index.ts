@@ -8,3 +8,4 @@ export { default as ChatBubble } from './ChatBubble';
 export { default as ProgressBar } from './ProgressBar';
 export { default as StatusBadge } from './StatusBadge';
 export { default as VoiceButton } from './VoiceButton';
+export { default as VideoPlaceholder } from './VideoPlaceholder';

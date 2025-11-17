@@ -303,5 +303,74 @@
     "networkError": "Network error. Please check your connection.",
     "serverError": "Server error. Please try again later.",
     "unknownError": "An unexpected error occurred"
+  },
+  "qchat": {
+    "appName": "Q-CHAT-10 Screening",
+    "subtitle": "For Ages 18-24 Months",
+    "ageBadge": "For Children Ages 18-24 Months",
+    "description": "Quantitative Checklist for Autism in Toddlers - A quick, video-based screening tool to help identify early signs of autism.",
+    "progress": "Question {{current}} of 10",
+    "watchBothVideos": "Watch both video examples, then select the option that best describes your child's behavior",
+    "positiveExample": "Typical Behavior",
+    "negativeExample": "Concerning Behavior",
+    "selectAnswer": "Which option best describes your child?",
+    "videoPlaceholder": "Video example coming soon",
+    "noVideosAvailable": "Video examples are currently unavailable for this question. Please answer based on the question text.",
+    "questions": {
+      "q1": "Does your child look at you when you call his/her name?",
+      "q2": "How easy is it for you to get eye contact with your child?",
+      "q3": "Does your child point to indicate that s/he wants something? (e.g. a toy that is out of reach)",
+      "q4": "Does your child point to share interest with you? (e.g. pointing at an interesting sight)",
+      "q5": "Does your child pretend? (e.g. care for dolls, talk on a toy phone)",
+      "q6": "Does your child follow where you're looking?",
+      "q7": "If you or someone else in the family is visibly upset, does your child show signs of wanting to comfort them? (e.g. stroking hair, hugging them)",
+      "q8": "Would you describe your child's first words as:",
+      "q9": "Does your child use simple gestures? (e.g. wave goodbye)",
+      "q10": "Does your child stare at nothing with no apparent purpose?"
+    },
+    "options": {
+      "frequency1": {
+        "a": "Always",
+        "b": "Usually",
+        "c": "Sometimes",
+        "d": "Rarely",
+        "e": "Never"
+      },
+      "ease": {
+        "a": "Very easy",
+        "b": "Quite easy",
+        "c": "Quite difficult",
+        "d": "Very difficult",
+        "e": "Impossible"
+      },
+      "frequency2": {
+        "a": "Many times a day",
+        "b": "A few times a day",
+        "c": "A few times a week",
+        "d": "Less than once a week",
+        "e": "Never"
+      },
+      "typical": {
+        "a": "Very typical",
+        "b": "Quite typical",
+        "c": "Slightly unusual",
+        "d": "Very unusual",
+        "e": "My child doesn't speak"
+      }
+    },
+    "report": {
+      "title": "Q-CHAT-10 Screening Report",
+      "score": "Total Score",
+      "outOf": "out of 10",
+      "threshold": "Referral Threshold: > 3 points",
+      "riskLevel": "Risk Assessment",
+      "low": "Low Risk",
+      "high": "Referral Recommended",
+      "recommendations": "Recommendations",
+      "answerBreakdown": "Answer Breakdown",
+      "scoredPoint": "Scored 1 point",
+      "noPoint": "No point",
+      "completedAt": "Completed at"
+    }
   }
 }

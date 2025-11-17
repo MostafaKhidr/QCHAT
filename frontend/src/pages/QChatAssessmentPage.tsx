@@ -1,0 +1,346 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { Button, Card, ProgressBar, VideoPlaceholder } from '../components/ui';
+import qchatAPI from '../services/qchat-api';
+import type {
+  QChatQuestion,
+  QChatAnswerOption,
+  QChatSubmitAnswerResponse,
+} from '../types/api.types';
+
+const QChatAssessmentPage: React.FC = () => {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+
+  const [currentQuestion, setCurrentQuestion] = useState<QChatQuestion | null>(null);
+  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Store answers for navigation
+  const [answersHistory, setAnswersHistory] = useState<Map<number, string>>(new Map());
+
+  const positiveVideoRef = useRef<HTMLVideoElement>(null);
+  const negativeVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Load current question
+  useEffect(() => {
+    const loadQuestion = async () => {
+      if (!token) return;
+
+      setIsLoadingQuestion(true);
+      setError(null);
+
+      try {
+        const question = await qchatAPI.getQuestion(token, currentQuestionNumber);
+        setCurrentQuestion(question);
+
+        // Restore previously selected answer if exists
+        const previousAnswer = answersHistory.get(currentQuestionNumber);
+        setSelectedOption(previousAnswer || null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load question');
+      } finally {
+        setIsLoadingQuestion(false);
+      }
+    };
+
+    loadQuestion();
+  }, [token, currentQuestionNumber, answersHistory]);
+
+  // Auto-play videos when question loads
+  useEffect(() => {
+    const playVideos = async () => {
+      if (positiveVideoRef.current && currentQuestion?.video_positive) {
+        try {
+          await positiveVideoRef.current.play();
+        } catch (err) {
+          console.log('Positive video autoplay prevented:', err);
+        }
+      }
+
+      if (negativeVideoRef.current && currentQuestion?.video_negative) {
+        try {
+          await negativeVideoRef.current.play();
+        } catch (err) {
+          console.log('Negative video autoplay prevented:', err);
+        }
+      }
+    };
+
+    if (currentQuestion) {
+      playVideos();
+    }
+  }, [currentQuestion]);
+
+  const handleOptionSelect = (optionValue: string) => {
+    setSelectedOption(optionValue);
+  };
+
+  const handleBack = () => {
+    if (currentQuestionNumber > 1) {
+      setCurrentQuestionNumber(currentQuestionNumber - 1);
+    }
+  };
+
+  const handleNext = async () => {
+    if (!selectedOption || !token) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Save answer to history
+      setAnswersHistory(prev => new Map(prev).set(currentQuestionNumber, selectedOption));
+
+      const response: QChatSubmitAnswerResponse = await qchatAPI.submitAnswer(token, {
+        question_number: currentQuestionNumber,
+        selected_option: selectedOption as QChatAnswerOption,
+      });
+
+      if (response.is_complete) {
+        // Assessment complete, navigate to report
+        navigate(`/qchat/report/${token}`);
+      } else if (response.next_question_number) {
+        // Move to next question
+        setCurrentQuestionNumber(response.next_question_number);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit answer');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getOptionLabel = (option: { value: string; label_en: string; label_ar: string }) => {
+    return i18n.language === 'ar' ? option.label_ar : option.label_en;
+  };
+
+  const getQuestionText = () => {
+    if (!currentQuestion) return '';
+    return i18n.language === 'ar' ? currentQuestion.text_ar : currentQuestion.text_en;
+  };
+
+  if (isLoadingQuestion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card padding="lg" className="max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-danger-600 mb-3">
+            {t('errors.sessionNotFound')}
+          </h2>
+          <p className="text-gray-600 mb-6">{error || 'Unable to load question'}</p>
+          <Button onClick={() => navigate('/')} variant="primary">
+            {t('nav.home')}
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Progress Header */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              {t('qchat.progress', { current: currentQuestionNumber })}
+            </h1>
+            <span className="text-sm text-gray-500 font-medium">
+              {currentQuestionNumber}/10
+            </span>
+          </div>
+          <ProgressBar current={currentQuestionNumber} total={10} />
+        </motion.div>
+
+        {/* Main Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestionNumber}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card padding="lg">
+              {/* Question Text */}
+              <div className="mb-8">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-relaxed">
+                  {getQuestionText()}
+                </h2>
+              </div>
+
+              {/* Instruction */}
+              <p className="text-sm text-gray-600 mb-6">
+                {t('qchat.watchBothVideos')}
+              </p>
+
+              {/* Videos Side-by-Side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Positive Video */}
+                <div>
+                  <div className="mb-3">
+                    <span className="inline-block px-3 py-1 bg-success-100 text-success-700 text-sm font-medium rounded-full">
+                      {t('qchat.positiveExample')}
+                    </span>
+                  </div>
+                  {currentQuestion.video_positive ? (
+                    <video
+                      ref={positiveVideoRef}
+                      className="w-full rounded-lg shadow-md"
+                      controls
+                      muted
+                      loop
+                      playsInline
+                    >
+                      <source src={currentQuestion.video_positive} type="video/mp4" />
+                      Your browser does not support video playback.
+                    </video>
+                  ) : (
+                    <VideoPlaceholder />
+                  )}
+                </div>
+
+                {/* Negative Video */}
+                <div>
+                  <div className="mb-3">
+                    <span className="inline-block px-3 py-1 bg-warning-100 text-warning-700 text-sm font-medium rounded-full">
+                      {t('qchat.negativeExample')}
+                    </span>
+                  </div>
+                  {currentQuestion.video_negative ? (
+                    <video
+                      ref={negativeVideoRef}
+                      className="w-full rounded-lg shadow-md"
+                      controls
+                      muted
+                      loop
+                      playsInline
+                    >
+                      <source src={currentQuestion.video_negative} type="video/mp4" />
+                      Your browser does not support video playback.
+                    </video>
+                  ) : (
+                    <VideoPlaceholder />
+                  )}
+                </div>
+              </div>
+
+              {/* No Videos Available Message */}
+              {!currentQuestion.video_positive && !currentQuestion.video_negative && (
+                <div className="mb-6 p-4 bg-info-50 border border-info-200 rounded-lg">
+                  <p className="text-sm text-info-700">
+                    {t('qchat.noVideosAvailable')}
+                  </p>
+                </div>
+              )}
+
+              {/* Answer Options */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('qchat.selectAnswer')}
+                </h3>
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleOptionSelect(option.value)}
+                      className={`
+                        w-full p-4 rounded-xl border-2 transition-all text-left
+                        flex items-center justify-between
+                        ${
+                          selectedOption === option.value
+                            ? 'border-primary-500 bg-primary-50 shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`
+                            w-6 h-6 rounded-full border-2 flex items-center justify-center
+                            ${
+                              selectedOption === option.value
+                                ? 'border-primary-500 bg-primary-500'
+                                : 'border-gray-300'
+                            }
+                          `}
+                        >
+                          {selectedOption === option.value && (
+                            <Check size={16} className="text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-900">
+                            {option.value}:
+                          </span>{' '}
+                          <span className="text-gray-700">{getOptionLabel(option)}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+                  <p className="text-sm text-danger-700">{error}</p>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between items-center gap-4">
+                {/* Back Button */}
+                <Button
+                  onClick={handleBack}
+                  variant="outline"
+                  size="lg"
+                  disabled={currentQuestionNumber === 1 || isLoading}
+                  leftIcon={<ArrowLeft size={20} />}
+                >
+                  {t('common.back')}
+                </Button>
+
+                {/* Next Button */}
+                <Button
+                  onClick={handleNext}
+                  variant="primary"
+                  size="lg"
+                  disabled={!selectedOption || isLoading}
+                  isLoading={isLoading}
+                  rightIcon={<ArrowRight size={20} />}
+                >
+                  {currentQuestionNumber === 10 ? t('common.submit') : t('common.next')}
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default QChatAssessmentPage;

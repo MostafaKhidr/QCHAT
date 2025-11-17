@@ -23,7 +23,7 @@ const AgeSelectionPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { createSession, isCreating, createError } = useSession();
+  const { createQChatSession, isCreating, createError } = useSession();
 
   const locationState = location.state as LocationState | null;
 
@@ -73,7 +73,7 @@ const AgeSelectionPage: React.FC = () => {
       newErrors.childName = t('ageSelection.validation.childNameRequired');
     }
 
-    if (formData.childAgeMonths < 16 || formData.childAgeMonths > 30) {
+    if (formData.childAgeMonths < 18 || formData.childAgeMonths > 24) {
       newErrors.childAgeMonths = t('ageSelection.validation.ageRange');
     }
 
@@ -88,16 +88,15 @@ const AgeSelectionPage: React.FC = () => {
       return;
     }
 
-    const token = await createSession({
-      mrn: formData.mrn,
-      parent_name: formData.parentName,
+    const token = await createQChatSession({
       child_name: formData.childName,
       child_age_months: formData.childAgeMonths,
+      parent_name: formData.parentName,
       language: formData.language,
     });
 
     if (token) {
-      navigate(`/chat/${token}`);
+      navigate(`/qchat/${token}`);
     }
   };
 
@@ -162,8 +161,8 @@ const AgeSelectionPage: React.FC = () => {
               {/* Age Slider */}
               <div>
                 <Slider
-                  min={16}
-                  max={30}
+                  min={18}
+                  max={24}
                   value={formData.childAgeMonths}
                   onChange={(value) => setFormData({ ...formData, childAgeMonths: value })}
                   label={t('ageSelection.form.childAge')}
