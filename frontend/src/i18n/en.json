@@ -1,0 +1,307 @@
+{
+  "common": {
+    "appName": "M-CHAT Screening",
+    "yes": "Yes",
+    "no": "No",
+    "start": "Start",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "close": "Close",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "nav": {
+    "home": "Home",
+    "contact": "Contact Us",
+    "history": "My Sessions"
+  },
+  "home": {
+    "title": "M-CHAT Autism Screening",
+    "subtitle": "For Ages 16-30 Months",
+    "ageBadge": "For Children Ages 16-30 Months",
+    "description": "A scientifically validated screening tool to help identify early signs of autism spectrum disorder in young children through engaging, evidence-based assessments.",
+    "startButton": "Start Journey",
+    "watchDemo": "Watch Demo",
+    "howItWorks": {
+      "title": "How It Works",
+      "description": "Complete the comprehensive M-CHAT screening in four simple, guided steps designed to be intuitive and parent-friendly",
+      "step1": {
+        "title": "Select Child",
+        "description": "Choose the dependent you want to screen from your registered children"
+      },
+      "step2": {
+        "title": "Learn Process",
+        "description": "Quick introduction to the screening process, what to expect, and how to answer questions accurately"
+      },
+      "step3": {
+        "title": "Answer Questions",
+        "description": "Interactive chat-based assessment with 20 simple questions about your child's behaviors and abilities"
+      },
+      "step4": {
+        "title": "Get Results",
+        "description": "Instant AI-powered analysis with detailed scoring breakdown, professional recommendations, and next steps"
+      }
+    },
+    "features": {
+      "title": "Why Choose M-CHAT",
+      "description": "A trusted, clinically validated, and highly effective screening tool recommended by pediatricians and developmental specialists",
+      "validated": {
+        "title": "Scientifically Validated",
+        "description": "Research-backed assessment used by healthcare professionals worldwide for reliable early detection"
+      },
+      "privacy": {
+        "title": "Privacy Protected",
+        "description": "Your family's information is encrypted and kept strictly confidential with secure data protection"
+      },
+      "quick": {
+        "title": "Quick & Easy",
+        "description": "Complete in just 5-10 minutes with instant, comprehensive feedback and actionable recommendations"
+      }
+    },
+    "copyright": "© 2009 Diana Robins, Deborah Fein, & Marianne Barton"
+  },
+  "childSelection": {
+    "title": "Previous Screening?",
+    "question": "Have you completed a screening before?",
+    "newScreening": "No, Start New Screening",
+    "viewHistory": "Yes, View My Sessions",
+    "tutorialButton": "How It Works",
+    "selectChildTitle": "Select Child or Dependent",
+    "selectChildSubtitle": "Who is this screening for?",
+    "newSession": "New Session",
+    "createNewScreening": "Create a new screening"
+  },
+  "ageSelection": {
+    "title": "Child Information",
+    "subtitle": "Please provide your child's information to begin",
+    "form": {
+      "mrn": "Medical Record Number (MRN)",
+      "mrnPlaceholder": "Enter MRN",
+      "parentName": "Parent/Guardian Name",
+      "parentNamePlaceholder": "Enter your name",
+      "childName": "Child's Name",
+      "childNamePlaceholder": "Enter child's name",
+      "childAge": "Child's Age (months)",
+      "ageLabel": "{{age}} months",
+      "language": "Preferred Language",
+      "languageEn": "English",
+      "languageAr": "Arabic"
+    },
+    "validation": {
+      "mrnRequired": "MRN is required",
+      "parentNameRequired": "Parent name is required",
+      "childNameRequired": "Child name is required",
+      "ageRange": "Child must be between 16 and 30 months old for M-CHAT screening"
+    },
+    "startChat": "Start Screening"
+  },
+  "chat": {
+    "title": "M-CHAT Screening",
+    "progress": "Question {{current}}/20",
+    "inputPlaceholder": "Type your answer...",
+    "sendButton": "Send",
+    "voiceButton": "Voice Input",
+    "voiceListening": "Listening...",
+    "voiceClickToStop": "Click microphone icon to stop",
+    "typing": "Typing...",
+    "speaking": "Speaking...",
+    "ttsToggle": "Toggle Text-to-Speech",
+    "ttsEnabled": "Text-to-Speech Enabled",
+    "ttsDisabled": "Text-to-Speech Disabled",
+    "quickAnswers": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "seeAnotherExample": "See Another Example",
+    "exit": {
+      "button": "Exit",
+      "confirmTitle": "Exit Screening?",
+      "confirmMessage": "You've answered {{current}} of 20 questions. If you exit now, your progress will be lost. Are you sure you want to leave?",
+      "confirmButton": "Exit Anyway",
+      "cancelButton": "Continue Screening"
+    },
+    "tutorial": {
+      "skip": "Skip",
+      "start": "Start",
+      "step1": {
+        "title": "Welcome to Your Screening! 👋",
+        "description": "This interactive chat will guide you through 20 simple questions about your child. Let's take a quick tour of the features to make this easy."
+      },
+      "step2": {
+        "title": "Track Your Progress",
+        "description": "Watch your progress here! You'll always know how many questions you've completed and how many remain."
+      },
+      "step3": {
+        "title": "Need Help Understanding?",
+        "description": "Every question has \"Watch\" and \"Listen\" buttons. Watch shows a video example, and Listen reads the question aloud for you."
+      },
+      "step4": {
+        "title": "Quick Response Buttons",
+        "description": "For the fastest experience, simply tap \"Yes\" or \"No\" after each question. These suggestion chips appear below the chat input."
+      },
+      "step5": {
+        "title": "Hands-Free Voice Input",
+        "description": "Prefer to speak? Click the microphone button and say your answer out loud. Perfect for multitasking parents!"
+      }
+    }
+  },
+  "report": {
+    "title": "Screening Complete",
+    "subtitle": "Thank you for completing the M-CHAT-R screening",
+    "score": "Score",
+    "outOf": "out of 20",
+    "riskLevel": {
+      "title": "Risk Level",
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "recommendations": {
+      "title": "Recommendations",
+      "lowRisk": [
+        "Your child's responses indicate typical development",
+        "Continue to monitor developmental milestones",
+        "Discuss any concerns with your pediatrician at regular check-ups"
+      ],
+      "mediumRisk": [
+        "Some responses indicate potential concerns",
+        "Follow up with your pediatrician within 1-2 months",
+        "Consider a comprehensive developmental evaluation",
+        "Early intervention can make a significant difference"
+      ],
+      "highRisk": [
+        "Responses indicate significant concerns for autism spectrum disorder",
+        "Contact your pediatrician immediately for referral",
+        "Request a comprehensive diagnostic evaluation",
+        "Early intervention services are crucial",
+        "You are taking the right step by seeking evaluation"
+      ]
+    },
+    "actions": {
+      "newScreening": "Start New Screening",
+      "contactSpecialist": "Contact Specialist",
+      "downloadPDF": "Download Report",
+      "viewDetails": "View Detailed Results"
+    },
+    "assessment": {
+      "title": "Assessment",
+      "lowLikelihood": {
+        "title": "Low likelihood (0-2 points)",
+        "description": "The child's development appears typical for their age based on this screening. No immediate action is needed at this time. If the child is under 24 months old, they will be automatically re-screened after their second birthday to ensure continued healthy development."
+      },
+      "mediumLikelihood": {
+        "title": "Medium likelihood (3-7 points)",
+        "description": "Some responses indicate potential concerns. Follow up with your pediatrician within 1-2 months. Consider a comprehensive developmental evaluation. Early intervention can make a significant difference."
+      },
+      "highLikelihood": {
+        "title": "High likelihood (8-20 points)",
+        "description": "The child may benefit from a comprehensive developmental evaluation. A clinician will reach out within one week to discuss early intervention and support options that can make a significant difference."
+      }
+    },
+    "questionBreakdown": {
+      "title": "Question Breakdown",
+      "edit": "Edit",
+      "didntAnswer": "Didn't Answer",
+      "skipped": "Skipped",
+      "patientScore": "Patient's Score",
+      "riskLevel": "Risk Level",
+      "patient": "Patient",
+      "ai": "AI",
+      "concern": "Concern",
+      "pass": "Pass",
+      "clickToChange": "Click to change answer",
+      "editModeInfo": "Edit Mode: Click on patient answers (Yes/No/Skipped) to toggle them. AI interpretations are auto-calculated and cannot be edited.",
+      "reportNotFound": "Report not found"
+    },
+    "months": "months",
+    "disclaimer": "This screening tool is not a diagnosis. A comprehensive evaluation by a qualified professional is needed for diagnosis."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Need help? We're here for you",
+    "form": {
+      "parentName": "Your Name",
+      "parentNamePlaceholder": "Enter your name",
+      "parentEmail": "Email Address",
+      "parentEmailPlaceholder": "your.email@example.com",
+      "parentPhone": "Phone Number (Optional)",
+      "parentPhonePlaceholder": "+1 (555) 000-0000",
+      "childName": "Child's Name",
+      "childNamePlaceholder": "Enter child's name",
+      "childAge": "Child's Age (months)",
+      "preferredLanguage": "Preferred Language",
+      "message": "Message (Optional)",
+      "messagePlaceholder": "Tell us about your concerns..."
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "childNameRequired": "Child's name is required",
+      "ageRequired": "Child's age is required",
+      "ageRange": "Age must be between 16 and 30 months"
+    },
+    "submitButton": "Send Message",
+    "successTitle": "Message Sent!",
+    "successMessage": "Thank you for contacting us. Our team will reach out to you within 24 hours.",
+    "errorTitle": "Error",
+    "errorMessage": "Failed to send message. Please try again."
+  },
+  "history": {
+    "title": "My Screening Sessions",
+    "subtitle": "View your previous screenings",
+    "screeningRecords": {
+      "title": "Screening Records",
+      "patientName": "Patient Name",
+      "patientId": "Patient ID",
+      "totalSessions": "Total Sessions",
+      "avgScore": "Avg Score"
+    },
+    "sessionHistory": {
+      "title": "Session History"
+    },
+    "filter": {
+      "allMrns": "All MRNs",
+      "filterByMrn": "Filter by MRN",
+      "showAll": "Show All Sessions"
+    },
+    "empty": {
+      "title": "No Sessions Yet",
+      "message": "You haven't completed any screenings yet.",
+      "button": "Start Your First Screening",
+      "filteredTitle": "No Sessions for Selected MRN",
+      "filteredMessage": "No sessions found for the selected MRN. Try selecting a different MRN or view all sessions."
+    },
+    "sessionCard": {
+      "child": "Child",
+      "date": "Date",
+      "score": "Score",
+      "childAge": "Child Age",
+      "months": "months",
+      "sessionNumber": "Session {{number}}",
+      "status": {
+        "completed": "Completed",
+        "inProgress": "In Progress",
+        "created": "Not Started"
+      },
+      "viewReport": "View Report",
+      "viewFullResults": "View Full Results",
+      "downloadReport": "Download Report",
+      "continue": "Continue Session",
+      "notAvailable": "N/A"
+    },
+    "newScreening": "Start New Screening"
+  },
+  "errors": {
+    "sessionNotFound": "Session not found",
+    "sessionCompleted": "This session has already been completed",
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "unknownError": "An unexpected error occurred"
+  }
+}
