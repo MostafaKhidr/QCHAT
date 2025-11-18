@@ -1,40 +1,52 @@
 // ==================== Enums ====================
 
-export enum SessionStatus {
-  CREATED = 'created',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  ABANDONED = 'abandoned',
-}
+export const SessionStatus = {
+  CREATED: 'created',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  ABANDONED: 'abandoned',
+} as const;
 
-export enum RiskLevel {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-}
+export type SessionStatus = typeof SessionStatus[keyof typeof SessionStatus];
 
-export enum AnswerType {
-  YES = 'yes',
-  NO = 'no',
-  UNANSWERED = 'unanswered',
-}
+export const RiskLevel = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+} as const;
 
-export enum MessageRole {
-  USER = 'user',
-  ASSISTANT = 'assistant',
-}
+export type RiskLevel = typeof RiskLevel[keyof typeof RiskLevel];
 
-export enum LanguageType {
-  EN = 'en',
-  AR = 'ar',
-}
+export const AnswerType = {
+  YES: 'yes',
+  NO: 'no',
+  UNANSWERED: 'unanswered',
+} as const;
 
-export enum ContactRequestStatus {
-  NEW = 'new',
-  CONTACTED = 'contacted',
-  SESSION_CREATED = 'session_created',
-  CLOSED = 'closed',
-}
+export type AnswerType = typeof AnswerType[keyof typeof AnswerType];
+
+export const MessageRole = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+} as const;
+
+export type MessageRole = typeof MessageRole[keyof typeof MessageRole];
+
+export const LanguageType = {
+  EN: 'en',
+  AR: 'ar',
+} as const;
+
+export type LanguageType = typeof LanguageType[keyof typeof LanguageType];
+
+export const ContactRequestStatus = {
+  NEW: 'new',
+  CONTACTED: 'contacted',
+  SESSION_CREATED: 'session_created',
+  CLOSED: 'closed',
+} as const;
+
+export type ContactRequestStatus = typeof ContactRequestStatus[keyof typeof ContactRequestStatus];
 
 // ==================== Request Types ====================
 
@@ -195,13 +207,15 @@ export interface ContactFormData {
 
 // ==================== Q-CHAT-10 Types ====================
 
-export enum QChatAnswerOption {
-  A = 'A',
-  B = 'B',
-  C = 'C',
-  D = 'D',
-  E = 'E',
-}
+export const QChatAnswerOption = {
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+  E: 'E',
+} as const;
+
+export type QChatAnswerOption = typeof QChatAnswerOption[keyof typeof QChatAnswerOption];
 
 export interface QChatCreateSessionRequest {
   child_name: string;

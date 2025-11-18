@@ -6,7 +6,7 @@ import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import { Button, Card, ProgressBar, VideoPlaceholder } from '../components/ui';
 import qchatAPI from '../services/qchat-api';
 import useSessionStore from '../store/sessionStore';
-import { RiskLevel } from '../types/api.types';
+import { RiskLevel, SessionStatus } from '../types/api.types';
 import type {
   QChatQuestion,
   QChatAnswerOption,
@@ -133,7 +133,7 @@ const QChatAssessmentPage: React.FC = () => {
 
       if (response.is_complete) {
         // Assessment complete - update session store and fetch report for score
-        updateSessionStatus('completed');
+        updateSessionStatus(SessionStatus.COMPLETED);
         
         // Fetch report to get final score and risk level
         try {
@@ -157,8 +157,8 @@ const QChatAssessmentPage: React.FC = () => {
         // Move to next question
         setCurrentQuestionNumber(response.next_question_number);
         // Update status to in_progress if not already
-        if (currentSession?.status === 'created') {
-          updateSessionStatus('in_progress');
+        if (currentSession?.status === SessionStatus.CREATED) {
+          updateSessionStatus(SessionStatus.IN_PROGRESS);
         }
       }
     } catch (err) {
@@ -341,7 +341,7 @@ const QChatAssessmentPage: React.FC = () => {
                   variant="outline"
                   size="lg"
                   disabled={currentQuestionNumber === 1 || isLoading}
-                  leftIcon={<ArrowLeft size={20} />}
+                  icon={<ArrowLeft size={20} />}
                 >
                   {t('common.back')}
                 </Button>
@@ -353,7 +353,7 @@ const QChatAssessmentPage: React.FC = () => {
                   size="lg"
                   disabled={!selectedOption || isLoading}
                   isLoading={isLoading}
-                  rightIcon={<ArrowRight size={20} />}
+                  icon={<ArrowRight size={20} />}
                 >
                   {currentQuestionNumber === 10 ? t('common.submit') : t('common.next')}
                 </Button>

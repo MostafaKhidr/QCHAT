@@ -11,10 +11,10 @@ import {
   User,
   Baby,
 } from 'lucide-react';
-import { Button, Card, StatusBadge } from '../components/ui';
+import { Button, Card } from '../components/ui';
 import qchatAPI from '../services/qchat-api';
 import useSessionStore from '../store/sessionStore';
-import { RiskLevel } from '../types/api.types';
+import { RiskLevel, SessionStatus } from '../types/api.types';
 import type { QChatReport } from '../types/api.types';
 
 const QChatReportPage: React.FC = () => {
@@ -42,7 +42,7 @@ const QChatReportPage: React.FC = () => {
         setReport(data);
         
         // Update session store with completed status and score
-        updateSessionStatus('completed');
+        updateSessionStatus(SessionStatus.COMPLETED);
         
         // Map risk_level string to RiskLevel enum
         let riskLevel: RiskLevel = RiskLevel.LOW;
@@ -354,7 +354,7 @@ ${divider}
             onClick={() => navigate('/')}
             variant="outline"
             size="lg"
-            leftIcon={<Home size={20} />}
+            icon={<Home size={20} />}
             className="hover:bg-gray-50 transition-colors duration-200"
           >
             {t('nav.home')}

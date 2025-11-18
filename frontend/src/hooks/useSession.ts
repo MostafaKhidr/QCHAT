@@ -9,6 +9,7 @@ import type {
   QChatCreateSessionRequest,
   QChatLocalSession,
 } from '../types/api.types';
+import { SessionStatus } from '../types/api.types';
 
 /**
  * Custom hook for session management
@@ -44,7 +45,7 @@ export const useSession = () => {
         child_name: data.child_name,
         child_age_months: data.child_age_months,
         language: data.language,
-        status: 'created',
+        status: SessionStatus.CREATED,
         created_at: new Date().toISOString(),
       };
 
@@ -120,12 +121,11 @@ export const useSession = () => {
       // Create local session object for Q-CHAT
       const localSession: QChatLocalSession = {
         session_token: response.session_token,
-        mrn: data.mrn || '',
         child_name: response.child_name,
         child_age_months: response.child_age_months,
         parent_name: data.parent_name,
         language: data.language,
-        status: 'created',
+        status: SessionStatus.CREATED,
         created_at: response.created_at,
         current_question: 1,
       };

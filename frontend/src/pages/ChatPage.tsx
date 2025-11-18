@@ -9,8 +9,7 @@ import { useChat } from '../hooks/useChat';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { useTTS } from '../hooks/useTTS';
 import useSessionStore from '../store/sessionStore';
-import { getVideoUrl } from '../utils/videoUtils';
-import { MessageRole } from '../types/api.types';
+import { MessageRole, SessionStatus } from '../types/api.types';
 
 const ChatPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -25,7 +24,6 @@ const ChatPage: React.FC = () => {
     isComplete,
     initializeChat,
     sendMessage,
-    sendQuickAnswer,
   } = useChat();
 
   const { currentSession, currentQuestionNumber, sessionHistory } = useSessionStore();
@@ -73,7 +71,7 @@ const ChatPage: React.FC = () => {
     // 3. User has no completed sessions in history (first-time user)
     if (!tutorialCompleted && messages.length === 0) {
       const hasCompletedSessions = sessionHistory.some(
-        (session) => session.status === 'completed'
+        (session) => session.status === SessionStatus.COMPLETED
       );
       
       // Show for first-time users (no completed sessions) or if no history at all

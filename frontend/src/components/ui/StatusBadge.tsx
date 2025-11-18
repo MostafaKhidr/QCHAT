@@ -65,7 +65,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
     },
   };
 
-  const { bgColor, bgColorValue, textColor, borderColor, borderColorValue, icon, label } = config[riskLevel];
+  const { bgColorValue, textColor, borderColorValue, icon, label } = config[riskLevel];
 
   return (
     <span

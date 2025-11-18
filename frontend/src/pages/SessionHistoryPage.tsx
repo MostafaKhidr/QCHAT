@@ -13,9 +13,9 @@ import {
   Clock,
   Filter
 } from 'lucide-react';
-import { Card, Button, StatusBadge } from '../components/ui';
+import { Card, Button } from '../components/ui';
 import useSessionStore from '../store/sessionStore';
-import { RiskLevel } from '../types/api.types';
+import { RiskLevel, SessionStatus } from '../types/api.types';
 import qchatAPI from '../services/qchat-api';
 
 const SessionHistoryPage: React.FC = () => {
@@ -66,8 +66,8 @@ const SessionHistoryPage: React.FC = () => {
       // 1. Are marked as completed but don't have a score
       // 2. Are marked as in_progress (might be completed in backend)
       const sessionsToCheck = sessionHistory.filter(
-        (s) => (s.status === 'completed' && (s.final_score === undefined || s.final_score === null)) ||
-               (s.status === 'in_progress' && (s.final_score === undefined || s.final_score === null))
+        (s) => (s.status === SessionStatus.COMPLETED && (s.final_score === undefined || s.final_score === null)) ||
+               (s.status === SessionStatus.IN_PROGRESS && (s.final_score === undefined || s.final_score === null))
       );
 
       if (sessionsToCheck.length === 0) return;
@@ -95,7 +95,7 @@ const SessionHistoryPage: React.FC = () => {
           try {
             const sessionInfo = await qchatAPI.getSession(token);
             // If session is completed, try to fetch report again (might have been a timing issue)
-            if (sessionInfo.status === 'completed') {
+            if (sessionInfo.status === SessionStatus.COMPLETED) {
               try {
                 const report = await qchatAPI.getReport(token);
                 return { token, report, sessionInfo, error: null };
@@ -138,12 +138,12 @@ const SessionHistoryPage: React.FC = () => {
           } else if (report.risk_level === 'medium') {
             updates.risk_level = RiskLevel.MEDIUM;
           }
-          updates.status = 'completed'; // Ensure status is set to completed
+          updates.status = SessionStatus.COMPLETED; // Ensure status is set to completed
           updated = true;
         }
         // If we got session info and it's completed, update status
-        else if (sessionInfo && sessionInfo.status === 'completed') {
-          updates.status = 'completed';
+        else if (sessionInfo && sessionInfo.status === SessionStatus.COMPLETED) {
+          updates.status = SessionStatus.COMPLETED;
           // QChatSessionResponse doesn't have score, but we know it's completed
           // The score will be fetched from the report when available
           updated = true;
@@ -196,7 +196,7 @@ const SessionHistoryPage: React.FC = () => {
 
     // Calculate average score from completed sessions only
     const completedSessions = sessionHistory.filter(
-      (s) => s.status === 'completed' && s.final_score !== undefined && s.final_score !== null
+      (s) => s.status === SessionStatus.COMPLETED && s.final_score !== undefined && s.final_score !== null
     );
     const avgScore =
       completedSessions.length > 0
@@ -244,19 +244,6 @@ const SessionHistoryPage: React.FC = () => {
     }
   };
 
-  const getStatusIconBg = (riskLevel?: RiskLevel) => {
-    switch (riskLevel) {
-      case RiskLevel.LOW:
-        return 'bg-success-600';
-      case RiskLevel.MEDIUM:
-        return 'bg-warning-400';
-      case RiskLevel.HIGH:
-        return 'bg-error-600';
-      default:
-        return 'bg-gray-200';
-    }
-  };
-
   const getStatusIconBgColor = (riskLevel?: RiskLevel): string => {
     switch (riskLevel) {
       case RiskLevel.LOW:
@@ -270,35 +257,6 @@ const SessionHistoryPage: React.FC = () => {
     }
   };
 
-  const getSessionCardBorderColor = (riskLevel?: RiskLevel) => {
-    if (!riskLevel) return 'border-l-gray-400';
-    
-    switch (riskLevel) {
-      case RiskLevel.LOW:
-        return 'border-l-success-600';
-      case RiskLevel.MEDIUM:
-        return 'border-l-warning-500';
-      case RiskLevel.HIGH:
-        return 'border-l-error-600';
-      default:
-        return 'border-l-gray-400';
-    }
-  };
-
-  const getSessionCardBarColor = (riskLevel?: RiskLevel) => {
-    if (!riskLevel) return 'bg-gray-400';
-    
-    switch (riskLevel) {
-      case RiskLevel.LOW:
-        return 'bg-success-600';
-      case RiskLevel.MEDIUM:
-        return 'bg-warning-500';
-      case RiskLevel.HIGH:
-        return 'bg-error-600';
-      default:
-        return 'bg-gray-400';
-    }
-  };
 
   const getSessionCardBarColorValue = (riskLevel?: RiskLevel): string => {
     switch (riskLevel) {
@@ -526,7 +484,7 @@ const SessionHistoryPage: React.FC = () => {
                               />
                             ) : (
                               <span className="inline-flex items-center gap-1.5 font-semibold rounded-full border-2 border-gray-300 bg-gray-100 text-gray-700 px-2 py-1 text-xs flex-shrink-0">
-                                {session.status === 'completed' 
+                                {session.status === SessionStatus.COMPLETED 
                                   ? t('history.sessionCard.status.completed', 'Completed')
                                   : t('history.sessionCard.status.inProgress', 'In Progress')}
                               </span>
@@ -544,7 +502,7 @@ const SessionHistoryPage: React.FC = () => {
                               <span className="font-bold text-gray-900">
                                 {session.final_score !== undefined && session.final_score !== null
                                   ? `${session.final_score}/20`
-                                  : session.status === 'completed'
+                                  : session.status === SessionStatus.COMPLETED
                                   ? '0/20'
                                   : t('history.sessionCard.notAvailable', 'N/A')}
                               </span>
@@ -564,7 +522,7 @@ const SessionHistoryPage: React.FC = () => {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-3">
-                          {session.status === 'completed' ? (
+                          {session.status === SessionStatus.COMPLETED ? (
                             <>
                               <Button
                                 variant="outline"

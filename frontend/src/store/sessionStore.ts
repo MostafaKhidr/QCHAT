@@ -3,11 +3,10 @@ import { persist } from 'zustand/middleware';
 import type {
   LocalSession,
   ChatMessage,
-  SessionStatus,
   MessageRole,
-  LanguageType,
   RiskLevel,
 } from '../types/api.types';
+import { SessionStatus } from '../types/api.types';
 
 interface SessionState {
   // Current active session
@@ -104,7 +103,7 @@ const useSessionStore = create<SessionState>()(
           };
 
           // Update session history if completed
-          if (status === 'completed') {
+          if (status === SessionStatus.COMPLETED) {
             const historyIndex = state.sessionHistory.findIndex(
               (s) => s.session_token === state.sessionToken
             );

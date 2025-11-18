@@ -195,9 +195,9 @@ const ContactPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, preferredLanguage: 'en' })}
+                    onClick={() => setFormData({ ...formData, preferredLanguage: LanguageType.EN })}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.preferredLanguage === 'en'
+                      formData.preferredLanguage === LanguageType.EN
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -210,9 +210,9 @@ const ContactPage: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, preferredLanguage: 'ar' })}
+                    onClick={() => setFormData({ ...formData, preferredLanguage: LanguageType.AR })}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.preferredLanguage === 'ar'
+                      formData.preferredLanguage === LanguageType.AR
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}

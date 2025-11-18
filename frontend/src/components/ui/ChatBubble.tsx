@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Bot, User, Volume2, Loader, Video, Headphones, RefreshCw } from 'lucide-react';
+import { Bot, User, Loader, Video, Headphones, RefreshCw } from 'lucide-react';
 import { MessageRole } from '../../types/api.types';
-import { hasVideoForQuestion, getVideoUrl, getAnotherVideoUrl, getVideosForQuestion, hasMoreVideos } from '../../utils/videoUtils';
+import { hasVideoForQuestion, getVideoUrl, getAnotherVideoUrl, hasMoreVideos } from '../../utils/videoUtils';
 
 interface ChatBubbleProps {
   role: MessageRole;
@@ -79,7 +79,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
       scale: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut',
+        ease: [0.4, 0, 0.2, 1] as const,
       },
     },
   };

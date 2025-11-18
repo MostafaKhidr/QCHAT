@@ -89,7 +89,6 @@ const AgeSelectionPage: React.FC = () => {
     }
 
     const token = await createQChatSession({
-      mrn: formData.mrn,
       child_name: formData.childName,
       child_age_months: formData.childAgeMonths,
       parent_name: formData.parentName,
@@ -233,9 +232,9 @@ const AgeSelectionPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, language: 'en' })}
+                    onClick={() => setFormData({ ...formData, language: LanguageType.EN })}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.language === 'en'
+                      formData.language === LanguageType.EN
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -248,9 +247,9 @@ const AgeSelectionPage: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, language: 'ar' })}
+                    onClick={() => setFormData({ ...formData, language: LanguageType.AR })}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.language === 'ar'
+                      formData.language === LanguageType.AR
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
