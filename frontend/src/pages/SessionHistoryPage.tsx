@@ -13,7 +13,7 @@ import {
   Clock,
   Filter
 } from 'lucide-react';
-import { Card, Button } from '../components/ui';
+import { Card, Button, StatusBadge } from '../components/ui';
 import useSessionStore from '../store/sessionStore';
 import { RiskLevel, SessionStatus } from '../types/api.types';
 import qchatAPI from '../services/qchat-api';

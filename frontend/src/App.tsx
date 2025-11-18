@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from './components/layout';
 
@@ -16,9 +15,7 @@ import QChatReportPage from './pages/QChatReportPage';
 
 function AppContent() {
   const location = useLocation();
-  const isHomePage = location.pathname === '/';
   const isChildSelectionPage = location.pathname === '/child-selection';
-  const isContactPage = location.pathname === '/contact';
   const isChatPage = location.pathname.startsWith('/chat/');
   const isQChatPage = location.pathname.startsWith('/qchat/');
 
