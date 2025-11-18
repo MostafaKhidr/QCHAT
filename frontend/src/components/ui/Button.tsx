@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onDrag' | 'onDragEnd' | 'onDragStart'> {
+interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 
+  'onDrag' | 'onDragEnd' | 'onDragStart' | 
+  'onAnimationStart' | 'onAnimationEnd' | 'onAnimationIteration'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
