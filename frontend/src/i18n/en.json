@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "M-CHAT Screening",
+    "appName": "Q-CHAT-10 Screening",
     "yes": "Yes",
     "no": "No",
     "start": "Start",
@@ -21,15 +21,15 @@
     "history": "My Sessions"
   },
   "home": {
-    "title": "M-CHAT Autism Screening",
-    "subtitle": "For Ages 16-30 Months",
-    "ageBadge": "For Children Ages 16-30 Months",
-    "description": "A scientifically validated screening tool to help identify early signs of autism spectrum disorder in young children through engaging, evidence-based assessments.",
+    "title": "Q-CHAT-10 (Quantitative Checklist for Autism in Toddlers)",
+    "subtitle": "For Ages 18-24 Months",
+    "ageBadge": "For Children Ages 18-24 Months",
+    "description": "A quick referral guide for parents to complete about their toddler (18-24 months) with concerns about autism. Video-based screening with 10 questions to help identify early signs.",
     "startButton": "Start Journey",
     "watchDemo": "Watch Demo",
     "howItWorks": {
       "title": "How It Works",
-      "description": "Complete the comprehensive M-CHAT screening in four simple, guided steps designed to be intuitive and parent-friendly",
+      "description": "Complete the Q-CHAT-10 screening in simple, guided steps designed to be intuitive and parent-friendly",
       "step1": {
         "title": "Select Child",
         "description": "Choose the dependent you want to screen from your registered children"
@@ -40,7 +40,7 @@
       },
       "step3": {
         "title": "Answer Questions",
-        "description": "Interactive chat-based assessment with 20 simple questions about your child's behaviors and abilities"
+        "description": "Video-based assessment with 10 questions about your child's behaviors and abilities"
       },
       "step4": {
         "title": "Get Results",
@@ -48,7 +48,7 @@
       }
     },
     "features": {
-      "title": "Why Choose M-CHAT",
+      "title": "Why Choose Q-CHAT-10",
       "description": "A trusted, clinically validated, and highly effective screening tool recommended by pediatricians and developmental specialists",
       "validated": {
         "title": "Scientifically Validated",
@@ -74,7 +74,9 @@
     "selectChildTitle": "Select Child or Dependent",
     "selectChildSubtitle": "Who is this screening for?",
     "newSession": "New Session",
-    "createNewScreening": "Create a new screening"
+    "newChild": "New Child",
+    "createNewScreening": "Create a new screening",
+    "addNewChild": "Add a new child"
   },
   "ageSelection": {
     "title": "Child Information",
@@ -96,13 +98,21 @@
       "mrnRequired": "MRN is required",
       "parentNameRequired": "Parent name is required",
       "childNameRequired": "Child name is required",
-      "ageRange": "Child must be between 16 and 30 months old for M-CHAT screening"
+      "ageRange": "Child must be between 18 and 24 months old for Q-CHAT-10 screening"
     },
-    "startChat": "Start Screening"
+    "startChat": "Start Screening",
+    "startSession": "Start Session",
+    "addChild": "Add Child",
+    "childInfo": {
+      "title": "Child Information",
+      "childName": "Child Name",
+      "mrn": "MRN",
+      "parentName": "Parent/Guardian Name"
+    }
   },
   "chat": {
-    "title": "M-CHAT Screening",
-    "progress": "Question {{current}}/20",
+    "title": "Q-CHAT-10 Screening",
+    "progress": "Question {{current}}/10",
     "inputPlaceholder": "Type your answer...",
     "sendButton": "Send",
     "voiceButton": "Voice Input",
@@ -121,7 +131,7 @@
     "exit": {
       "button": "Exit",
       "confirmTitle": "Exit Screening?",
-      "confirmMessage": "You've answered {{current}} of 20 questions. If you exit now, your progress will be lost. Are you sure you want to leave?",
+      "confirmMessage": "You've answered {{current}} of 10 questions. If you exit now, your progress will be lost. Are you sure you want to leave?",
       "confirmButton": "Exit Anyway",
       "cancelButton": "Continue Screening"
     },
@@ -130,7 +140,7 @@
       "start": "Start",
       "step1": {
         "title": "Welcome to Your Screening! 👋",
-        "description": "This interactive chat will guide you through 20 simple questions about your child. Let's take a quick tour of the features to make this easy."
+        "description": "This video-based assessment will guide you through 10 simple questions about your child. Let's take a quick tour of the features to make this easy."
       },
       "step2": {
         "title": "Track Your Progress",
@@ -152,9 +162,9 @@
   },
   "report": {
     "title": "Screening Complete",
-    "subtitle": "Thank you for completing the M-CHAT-R screening",
+    "subtitle": "Thank you for completing the Q-CHAT-10 screening",
     "score": "Score",
-    "outOf": "out of 20",
+    "outOf": "out of 10",
     "riskLevel": {
       "title": "Risk Level",
       "low": "Low Risk",
@@ -244,7 +254,7 @@
       "emailInvalid": "Please enter a valid email",
       "childNameRequired": "Child's name is required",
       "ageRequired": "Child's age is required",
-      "ageRange": "Age must be between 16 and 30 months"
+      "ageRange": "Age must be between 18 and 24 months"
     },
     "submitButton": "Send Message",
     "successTitle": "Message Sent!",
@@ -291,7 +301,7 @@
       },
       "viewReport": "View Report",
       "viewFullResults": "View Full Results",
-      "downloadReport": "Download Report",
+      "downloadReport": "Download My Report",
       "continue": "Continue Session",
       "notAvailable": "N/A"
     },
@@ -310,7 +320,9 @@
     "ageBadge": "For Children Ages 18-24 Months",
     "description": "Quantitative Checklist for Autism in Toddlers - A quick, video-based screening tool to help identify early signs of autism.",
     "progress": "Question {{current}} of 10",
+    "watchVideo": "Watch the video example, then select the option that best describes your child's behavior",
     "watchBothVideos": "Watch both video examples, then select the option that best describes your child's behavior",
+    "videoExample": "Video Example",
     "positiveExample": "Typical Behavior",
     "negativeExample": "Concerning Behavior",
     "selectAnswer": "Which option best describes your child?",

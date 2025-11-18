@@ -230,7 +230,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Why Choose M-CHAT Section */}
+      {/* Why Choose Q-CHAT-10 Section */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <motion.h2

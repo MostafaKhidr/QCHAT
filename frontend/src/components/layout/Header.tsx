@@ -29,7 +29,7 @@ const Header: React.FC = () => {
               <CheckCircle size={20} className="text-white" />
             </div>
             <span className="text-xl font-display font-bold text-gray-900">
-              M-CHAT
+              Q-CHAT-10
             </span>
           </Link>
 

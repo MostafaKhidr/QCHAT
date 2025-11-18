@@ -139,7 +139,7 @@ const useSessionStore = create<SessionState>()(
             risk_level: riskLevel,
           };
 
-          // Also update in history if exists
+          // Also update in history if exists, or add if it doesn't
           const historyIndex = state.sessionHistory.findIndex(
             (s) => s.session_token === state.sessionToken
           );
@@ -147,6 +147,9 @@ const useSessionStore = create<SessionState>()(
           let newHistory = [...state.sessionHistory];
           if (historyIndex >= 0) {
             newHistory[historyIndex] = updatedSession;
+          } else {
+            // Add to history if not already there
+            newHistory = [...newHistory, updatedSession];
           }
 
           return {
@@ -222,7 +225,7 @@ const useSessionStore = create<SessionState>()(
       },
     }),
     {
-      name: 'mchat-session-storage', // localStorage key
+      name: 'qchat-session-storage', // localStorage key
       partialize: (state) => ({
         // Only persist these fields
         currentSession: state.currentSession,

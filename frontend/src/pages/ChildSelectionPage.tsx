@@ -25,23 +25,24 @@ const ChildSelectionPage: React.FC = () => {
   const location = useLocation();
   const { sessionHistory } = useSessionStore();
   const [selectedChild, setSelectedChild] = useState<ChildData | null>(null);
-  const [isNewSession, setIsNewSession] = useState(false);
+  const [isNewChild, setIsNewChild] = useState(false);
 
   // Get children from location state
   const locationState = location.state as LocationState | null;
   
-  // Extract unique children from session history with all available data
-  // Use the most recent session's data for each child
+  // Extract ALL unique children from session history with all available data
+  // Include all children regardless of session status
   const historyChildren = useMemo(() => {
     const uniqueChildren = new Map<string, ChildData>();
-    
+
     // Sort sessions by date (most recent first) to get latest data
     const sortedSessions = [...sessionHistory].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    
+
     sortedSessions.forEach(session => {
       const key = `${session.mrn}-${session.child_name}`;
+      // Add all unique children (no filter for status)
       if (!uniqueChildren.has(key)) {
         // Use the most recent session data for each child
         uniqueChildren.set(key, {
@@ -91,70 +92,37 @@ const ChildSelectionPage: React.FC = () => {
     
     // First click: just select
     setSelectedChild(child);
-    setIsNewSession(false);
+    setIsNewChild(false);
   };
 
-  const handleNewSession = () => {
+  const handleNewChild = () => {
     // If already selected, navigate (double-click behavior)
-    if (isNewSession) {
+    if (isNewChild) {
       handleContinue();
       return;
     }
     
     // First click: just select
     setSelectedChild(null);
-    setIsNewSession(true);
+    setIsNewChild(true);
   };
 
   const handleContinue = () => {
-    if (isNewSession) {
-      // Navigate to new session without pre-filled data
+    if (isNewChild) {
+      // Navigate to new child form without pre-filled data
       navigate('/session/new');
     } else if (selectedChild) {
-      // Find existing session for this child (most recent first)
-      // Use case-insensitive matching and trim whitespace
-      const existingSession = sessionHistory
-        .filter(session => {
-          const sessionMrn = (session.mrn || '').trim().toLowerCase();
-          const sessionName = (session.child_name || '').trim().toLowerCase();
-          const childMrn = (selectedChild.mrn || '').trim().toLowerCase();
-          const childName = (selectedChild.name || '').trim().toLowerCase();
-          return sessionMrn === childMrn && sessionName === childName;
-        })
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
-      // If there's any existing session, check its status
-      if (existingSession) {
-        // If session is completed, start a new session for this child
-        if (existingSession.status === 'completed') {
-          // Navigate to new session form with pre-filled data from the child
-          navigate('/session/new', {
-            state: {
-              child: selectedChild,
-              mrn: selectedChild.mrn,
-              childName: selectedChild.name,
-              parentName: selectedChild.parentName,
-              childAgeMonths: selectedChild.childAgeMonths,
-              language: selectedChild.language || i18n.language
-            }
-          });
-        } else {
-          // For in_progress, created, or any other status, go to chat
-          navigate(`/chat/${existingSession.session_token}`);
+      // Always navigate to new session form with pre-filled data from the child
+      navigate('/session/new', {
+        state: {
+          child: selectedChild,
+          mrn: selectedChild.mrn,
+          childName: selectedChild.name,
+          parentName: selectedChild.parentName,
+          childAgeMonths: selectedChild.childAgeMonths,
+          language: selectedChild.language || i18n.language
         }
-      } else {
-        // No session exists, go to new session form with all pre-filled data
-        navigate('/session/new', {
-          state: {
-            child: selectedChild,
-            mrn: selectedChild.mrn,
-            childName: selectedChild.name,
-            parentName: selectedChild.parentName,
-            childAgeMonths: selectedChild.childAgeMonths,
-            language: selectedChild.language || i18n.language
-          }
-        });
-      }
+      });
     }
   };
 
@@ -162,7 +130,7 @@ const ChildSelectionPage: React.FC = () => {
     navigate(-1);
   };
 
-  // Card colors matching Figma design
+  // Card colors matching Figma design - cycle through colors for multiple children
   const cardColors = [
     { 
       bg: 'bg-blue-50', 
@@ -173,6 +141,26 @@ const ChildSelectionPage: React.FC = () => {
       bg: 'bg-orange-50', 
       border: 'border-orange-300', 
       icon: 'text-orange-700'
+    },
+    { 
+      bg: 'bg-green-50', 
+      border: 'border-green-300', 
+      icon: 'text-green-700'
+    },
+    { 
+      bg: 'bg-purple-50', 
+      border: 'border-purple-300', 
+      icon: 'text-purple-700'
+    },
+    { 
+      bg: 'bg-pink-50', 
+      border: 'border-pink-300', 
+      icon: 'text-pink-700'
+    },
+    { 
+      bg: 'bg-teal-50', 
+      border: 'border-teal-300', 
+      icon: 'text-teal-700'
     }
   ];
 
@@ -200,7 +188,7 @@ const ChildSelectionPage: React.FC = () => {
                   <CheckCircle size={18} className="text-white" />
                 </div>
                 <span className="text-xl font-display font-bold text-gray-900">
-                  M-CHAT
+                  Q-CHAT-10
                 </span>
               </button>
             </div>
@@ -255,16 +243,16 @@ const ChildSelectionPage: React.FC = () => {
 
         {/* Child Selection Cards */}
         <div className="flex flex-col md:flex-row gap-6 justify-center mb-8 flex-wrap">
-          {/* New Session Card - Always visible */}
+          {/* New Child Card - Always visible */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0 }}
-            onClick={handleNewSession}
+            onClick={handleNewChild}
             className={`
               flex-1 max-w-sm cursor-pointer transition-all duration-200
               bg-gray-50 border-2 border-gray-300 rounded-lg p-6
-              ${isNewSession ? 'ring-2 ring-offset-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
+              ${isNewChild ? 'ring-2 ring-offset-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
             `}
           >
             <div className="flex items-center gap-4">
@@ -273,17 +261,17 @@ const ChildSelectionPage: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                  {t('childSelection.newSession')}
+                  {t('childSelection.newChild')}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {t('childSelection.createNewScreening')}
+                  {t('childSelection.addNewChild')}
                 </p>
               </div>
             </div>
           </motion.div>
 
-          {/* Existing Children Cards */}
-          {children.slice(0, 2).map((child, index) => {
+          {/* Existing Children Cards - Show all unique children */}
+          {children.map((child, index) => {
             const colors = cardColors[index % cardColors.length];
             const isSelected = selectedChild?.mrn === child.mrn && selectedChild?.name === child.name;
             
@@ -332,10 +320,10 @@ const ChildSelectionPage: React.FC = () => {
             variant="outline"
             size="lg"
             onClick={handleContinue}
-            disabled={!selectedChild && !isNewSession}
+            disabled={!selectedChild && !isNewChild}
             className={`
               bg-gray-100 text-gray-700 border-gray-300
-              ${(selectedChild || isNewSession) ? 'hover:bg-gray-200 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+              ${(selectedChild || isNewChild) ? 'hover:bg-gray-200 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
               px-8 py-3 rounded-lg flex items-center gap-2
             `}
           >

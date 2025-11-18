@@ -89,6 +89,7 @@ const AgeSelectionPage: React.FC = () => {
     }
 
     const token = await createQChatSession({
+      mrn: formData.mrn,
       child_name: formData.childName,
       child_age_months: formData.childAgeMonths,
       parent_name: formData.parentName,
@@ -99,6 +100,9 @@ const AgeSelectionPage: React.FC = () => {
       navigate(`/qchat/${token}`);
     }
   };
+
+  // Check if child information is already provided
+  const hasChildInfo = formData.childName && formData.mrn && formData.parentName;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -116,6 +120,53 @@ const AgeSelectionPage: React.FC = () => {
             {t('ageSelection.subtitle')}
           </p>
         </motion.div>
+
+        {/* Child Information Display */}
+        {hasChildInfo && (
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <Card padding="md" className="bg-primary-50 border-2 border-primary-200">
+              <div className="flex items-center gap-3 mb-4">
+                <Baby size={24} className="text-primary-700" />
+                <h2 className="text-lg font-bold text-gray-900">
+                  {t('ageSelection.childInfo.title')}
+                </h2>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-600 min-w-[120px]">
+                    {t('ageSelection.childInfo.childName')}:
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formData.childName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-600 min-w-[120px]">
+                    {t('ageSelection.childInfo.mrn')}:
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formData.mrn}
+                  </span>
+                </div>
+                {formData.parentName && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-600 min-w-[120px]">
+                      {t('ageSelection.childInfo.parentName')}:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {formData.parentName}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Form */}
         <motion.div
@@ -227,7 +278,7 @@ const AgeSelectionPage: React.FC = () => {
                 fullWidth
                 isLoading={isCreating}
               >
-                {t('ageSelection.startChat')}
+                {hasChildInfo ? t('ageSelection.startSession') : t('ageSelection.startChat')}
               </Button>
             </form>
           </Card>

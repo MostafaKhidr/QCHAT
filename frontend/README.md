@@ -1,16 +1,17 @@
-# M-CHAT Screening - User Frontend Application
+# Q-CHAT-10 Screening - User Frontend Application
 
-React-based user-facing web application for M-CHAT-R (Modified Checklist for Autism in Toddlers-Revised) autism screening.
+React-based user-facing web application for Q-CHAT-10 (Quantitative Checklist for Autism in Toddlers) autism screening.
 
 ## Features
 
-- 🎯 **Interactive Chat Interface** - Conversational 20-question M-CHAT-R screening
+- 🎥 **Video-Based Assessment** - Side-by-side positive and negative behavior examples for 10 questions
 - 🌍 **Bilingual Support** - English and Arabic with RTL layout
-- 🎤 **Voice Input** - Web Speech API integration for voice-based responses
+- 📊 **5-Point Scale Answers** - Frequency-based response options (Always to Never)
 - 📱 **Mobile Responsive** - Optimized for all devices
 - 💾 **Session Persistence** - Auto-save and resume functionality
-- 📊 **Instant Reports** - Immediate risk assessment and recommendations
+- 📄 **Instant Reports** - Immediate risk assessment and downloadable recommendations
 - ♿ **Accessible** - WCAG 2.1 compliant with keyboard navigation
+- ↩️ **Navigation Freedom** - Go back to previous questions and change answers
 
 ## Tech Stack
 
@@ -44,7 +45,7 @@ Copy `.env.example` to `.env` and update:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
-VITE_APP_NAME=M-CHAT Screening
+VITE_APP_NAME=Q-CHAT-10 Screening
 VITE_APP_VERSION=1.0.0
 VITE_APP_ENV=development
 ```
@@ -107,7 +108,7 @@ See [PROGRESS.md](./PROGRESS.md) for detailed implementation status.
 
 ## API Integration
 
-The frontend integrates with the M-CHAT backend REST API.
+The frontend integrates with the Q-CHAT-10 backend REST API.
 
 ### Endpoints Used
 

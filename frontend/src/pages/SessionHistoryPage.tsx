@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+ import React, { useMemo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -16,7 +16,7 @@ import {
 import { Card, Button, StatusBadge } from '../components/ui';
 import useSessionStore from '../store/sessionStore';
 import { RiskLevel } from '../types/api.types';
-import { mchatAPI } from '../services/mchat-api';
+import qchatAPI from '../services/qchat-api';
 
 const SessionHistoryPage: React.FC = () => {
   const { t } = useTranslation();
@@ -59,15 +59,20 @@ const SessionHistoryPage: React.FC = () => {
   }, [rawSessionHistory, selectedMrn]);
 
   // Fetch report scores for completed sessions that don't have a score
+  // Also check backend session status to sync with frontend
   useEffect(() => {
     const fetchMissingScores = async () => {
-      const sessionsToUpdate = sessionHistory.filter(
-        (s) => s.status === 'completed' && (s.final_score === undefined || s.final_score === null)
+      // Check all sessions that either:
+      // 1. Are marked as completed but don't have a score
+      // 2. Are marked as in_progress (might be completed in backend)
+      const sessionsToCheck = sessionHistory.filter(
+        (s) => (s.status === 'completed' && (s.final_score === undefined || s.final_score === null)) ||
+               (s.status === 'in_progress' && (s.final_score === undefined || s.final_score === null))
       );
 
-      if (sessionsToUpdate.length === 0) return;
+      if (sessionsToCheck.length === 0) return;
 
-      const tokensToFetch = sessionsToUpdate
+      const tokensToFetch = sessionsToCheck
         .map((s) => s.session_token)
         .filter((token) => !scoresLoading.has(token));
 
@@ -83,11 +88,27 @@ const SessionHistoryPage: React.FC = () => {
       // Fetch all reports in parallel
       const reportPromises = tokensToFetch.map(async (token) => {
         try {
-          const report = await mchatAPI.getReport(token);
-          return { token, report };
+          const report = await qchatAPI.getReport(token);
+          return { token, report, sessionInfo: null, error: null };
         } catch (error) {
-          console.debug(`No report found for session ${token}`);
-          return { token, report: null };
+          // If report fetch fails, try to get session info to check status
+          try {
+            const sessionInfo = await qchatAPI.getSession(token);
+            // If session is completed, try to fetch report again (might have been a timing issue)
+            if (sessionInfo.status === 'completed') {
+              try {
+                const report = await qchatAPI.getReport(token);
+                return { token, report, sessionInfo, error: null };
+              } catch (reportError) {
+                // Report still not available, but we know it's completed
+                return { token, report: null, sessionInfo, error: null };
+              }
+            }
+            return { token, report: null, sessionInfo, error: null };
+          } catch (sessionError) {
+            console.debug(`No report or session found for ${token}`);
+            return { token, report: null, sessionInfo: null, error: sessionError };
+          }
         }
       });
 
@@ -98,15 +119,40 @@ const SessionHistoryPage: React.FC = () => {
       let hasUpdates = false;
       const newHistory = [...currentHistory];
 
-      results.forEach(({ token, report }) => {
-        if (!report || report.final_score === undefined) return;
-
+      results.forEach(({ token, report, sessionInfo }) => {
         const historyIndex = newHistory.findIndex((s) => s.session_token === token);
-        if (historyIndex >= 0) {
+        if (historyIndex < 0) return;
+
+        const currentSession = newHistory[historyIndex];
+        let updated = false;
+        const updates: Partial<typeof currentSession> = {};
+
+        // If we got a report, update score and risk level
+        if (report && report.total_score !== undefined) {
+          updates.final_score = report.total_score; // Map total_score to final_score for LocalSession
+          // Map backend risk_level string to RiskLevel enum
+          if (report.risk_level === 'low') {
+            updates.risk_level = RiskLevel.LOW;
+          } else if (report.risk_level === 'high') {
+            updates.risk_level = RiskLevel.HIGH;
+          } else if (report.risk_level === 'medium') {
+            updates.risk_level = RiskLevel.MEDIUM;
+          }
+          updates.status = 'completed'; // Ensure status is set to completed
+          updated = true;
+        }
+        // If we got session info and it's completed, update status
+        else if (sessionInfo && sessionInfo.status === 'completed') {
+          updates.status = 'completed';
+          // QChatSessionResponse doesn't have score, but we know it's completed
+          // The score will be fetched from the report when available
+          updated = true;
+        }
+
+        if (updated) {
           newHistory[historyIndex] = {
-            ...newHistory[historyIndex],
-            final_score: report.final_score,
-            risk_level: report.risk_level,
+            ...currentSession,
+            ...updates,
           };
           hasUpdates = true;
         }
@@ -269,7 +315,7 @@ const SessionHistoryPage: React.FC = () => {
 
   const handleContinueSession = (session: typeof sessionHistory[0], e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/chat/${session.session_token}`);
+    navigate(`/qchat/${session.session_token}`);
   };
 
   const handleViewResults = (session: typeof sessionHistory[0], e: React.MouseEvent) => {

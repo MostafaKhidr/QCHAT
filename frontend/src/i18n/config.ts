@@ -4,7 +4,7 @@ import en from './en.json';
 import ar from './ar.json';
 
 // Get saved language or default to 'en'
-const savedLanguage = localStorage.getItem('mchat-language') || 'en';
+const savedLanguage = localStorage.getItem('qchat-language') || 'en';
 
 i18n
   .use(initReactI18next)
@@ -39,7 +39,7 @@ applyDirection(savedLanguage);
 
 // Listen for language changes
 i18n.on('languageChanged', (lng) => {
-  localStorage.setItem('mchat-language', lng);
+  localStorage.setItem('qchat-language', lng);
   applyDirection(lng);
 });
 

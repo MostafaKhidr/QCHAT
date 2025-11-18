@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import { Button, Card, ProgressBar, VideoPlaceholder } from '../components/ui';
 import qchatAPI from '../services/qchat-api';
+import useSessionStore from '../store/sessionStore';
+import { RiskLevel } from '../types/api.types';
 import type {
   QChatQuestion,
   QChatAnswerOption,
@@ -21,18 +23,51 @@ const QChatAssessmentPage: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(true);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Store answers for navigation
   const [answersHistory, setAnswersHistory] = useState<Map<number, string>>(new Map());
 
+  // Session store
+  const { updateSessionStatus, updateSessionScore, currentSession } = useSessionStore();
+
   const positiveVideoRef = useRef<HTMLVideoElement>(null);
-  const negativeVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Load session on mount to resume from where user left off
+  useEffect(() => {
+    const loadSession = async () => {
+      if (!token) return;
+
+      setIsLoadingSession(true);
+      setError(null);
+
+      try {
+        const session = await qchatAPI.getSession(token);
+
+        // Resume from current question in session
+        setCurrentQuestionNumber(session.current_question);
+
+        // Preload answers history
+        const history = new Map<number, string>();
+        session.answers.forEach((answer) => {
+          history.set(answer.question_number, answer.selected_option);
+        });
+        setAnswersHistory(history);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load session');
+      } finally {
+        setIsLoadingSession(false);
+      }
+    };
+
+    loadSession();
+  }, [token]);
 
   // Load current question
   useEffect(() => {
     const loadQuestion = async () => {
-      if (!token) return;
+      if (!token || isLoadingSession) return;
 
       setIsLoadingQuestion(true);
       setError(null);
@@ -52,30 +87,22 @@ const QChatAssessmentPage: React.FC = () => {
     };
 
     loadQuestion();
-  }, [token, currentQuestionNumber, answersHistory]);
+  }, [token, currentQuestionNumber, isLoadingSession]);
 
-  // Auto-play videos when question loads
+  // Auto-play positive video when question loads
   useEffect(() => {
-    const playVideos = async () => {
+    const playVideo = async () => {
       if (positiveVideoRef.current && currentQuestion?.video_positive) {
         try {
           await positiveVideoRef.current.play();
         } catch (err) {
-          console.log('Positive video autoplay prevented:', err);
-        }
-      }
-
-      if (negativeVideoRef.current && currentQuestion?.video_negative) {
-        try {
-          await negativeVideoRef.current.play();
-        } catch (err) {
-          console.log('Negative video autoplay prevented:', err);
+          console.log('Video autoplay prevented:', err);
         }
       }
     };
 
     if (currentQuestion) {
-      playVideos();
+      playVideo();
     }
   }, [currentQuestion]);
 
@@ -105,11 +132,34 @@ const QChatAssessmentPage: React.FC = () => {
       });
 
       if (response.is_complete) {
-        // Assessment complete, navigate to report
+        // Assessment complete - update session store and fetch report for score
+        updateSessionStatus('completed');
+        
+        // Fetch report to get final score and risk level
+        try {
+          const report = await qchatAPI.getReport(token);
+          // Map risk_level string to RiskLevel enum
+          let riskLevel: RiskLevel = RiskLevel.LOW;
+          if (report.risk_level === 'high') {
+            riskLevel = RiskLevel.HIGH;
+          } else if (report.risk_level === 'medium') {
+            riskLevel = RiskLevel.MEDIUM;
+          }
+          updateSessionScore(report.total_score, riskLevel);
+        } catch (err) {
+          console.error('Failed to fetch report after completion:', err);
+          // Still update status even if report fetch fails
+        }
+        
+        // Navigate to report
         navigate(`/qchat/report/${token}`);
       } else if (response.next_question_number) {
         // Move to next question
         setCurrentQuestionNumber(response.next_question_number);
+        // Update status to in_progress if not already
+        if (currentSession?.status === 'created') {
+          updateSessionStatus('in_progress');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit answer');
@@ -127,7 +177,7 @@ const QChatAssessmentPage: React.FC = () => {
     return i18n.language === 'ar' ? currentQuestion.text_ar : currentQuestion.text_en;
   };
 
-  if (isLoadingQuestion) {
+  if (isLoadingSession || isLoadingQuestion) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -193,19 +243,18 @@ const QChatAssessmentPage: React.FC = () => {
 
               {/* Instruction */}
               <p className="text-sm text-gray-600 mb-6">
-                {t('qchat.watchBothVideos')}
+                {t('qchat.watchVideo')}
               </p>
 
-              {/* Videos Side-by-Side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {/* Positive Video */}
-                <div>
-                  <div className="mb-3">
-                    <span className="inline-block px-3 py-1 bg-success-100 text-success-700 text-sm font-medium rounded-full">
-                      {t('qchat.positiveExample')}
-                    </span>
-                  </div>
-                  {currentQuestion.video_positive ? (
+              {/* Video Display (Positive Only) */}
+              <div className="mb-8">
+                {currentQuestion.video_positive ? (
+                  <div className="max-w-3xl mx-auto">
+                    <div className="mb-3">
+                      <span className="inline-block px-3 py-1 bg-success-100 text-success-700 text-sm font-medium rounded-full">
+                        {t('qchat.videoExample')}
+                      </span>
+                    </div>
                     <video
                       ref={positiveVideoRef}
                       className="w-full rounded-lg shadow-md"
@@ -217,44 +266,18 @@ const QChatAssessmentPage: React.FC = () => {
                       <source src={currentQuestion.video_positive} type="video/mp4" />
                       Your browser does not support video playback.
                     </video>
-                  ) : (
-                    <VideoPlaceholder />
-                  )}
-                </div>
-
-                {/* Negative Video */}
-                <div>
-                  <div className="mb-3">
-                    <span className="inline-block px-3 py-1 bg-warning-100 text-warning-700 text-sm font-medium rounded-full">
-                      {t('qchat.negativeExample')}
-                    </span>
                   </div>
-                  {currentQuestion.video_negative ? (
-                    <video
-                      ref={negativeVideoRef}
-                      className="w-full rounded-lg shadow-md"
-                      controls
-                      muted
-                      loop
-                      playsInline
-                    >
-                      <source src={currentQuestion.video_negative} type="video/mp4" />
-                      Your browser does not support video playback.
-                    </video>
-                  ) : (
+                ) : (
+                  <div className="max-w-3xl mx-auto">
                     <VideoPlaceholder />
-                  )}
-                </div>
+                    <div className="mt-4 p-4 bg-info-50 border border-info-200 rounded-lg">
+                      <p className="text-sm text-info-700">
+                        {t('qchat.noVideosAvailable')}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* No Videos Available Message */}
-              {!currentQuestion.video_positive && !currentQuestion.video_negative && (
-                <div className="mb-6 p-4 bg-info-50 border border-info-200 rounded-lg">
-                  <p className="text-sm text-info-700">
-                    {t('qchat.noVideosAvailable')}
-                  </p>
-                </div>
-              )}
 
               {/* Answer Options */}
               <div className="mb-8">
