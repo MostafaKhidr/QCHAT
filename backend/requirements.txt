@@ -1,34 +1,38 @@
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
-pydantic==2.10.3
-pydantic-settings==2.6.1
+# Web Framework
+fastapi==0.109.0
+python-multipart==0.0.6
+
+# LangChain & LangGraph
+langchain==0.1.6
+langchain-core==0.1.23
+langchain-openai==0.0.5
+langgraph==0.0.20
+
+# Data Validation & Settings
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Environment Variables
 python-dotenv==1.0.1
-python-jose[cryptography]==3.3.0
-# FastAPI and server
-fastapi
-uvicorn[standard]
-python-multipart
 
-# LangChain and LangGraph
-langchain
-langgraph
-langchain-openai
-# langchain-google-genai
-langchain-core
-langchain-community
+# HTTP Client
+httpx==0.26.0
 
+# Optional: Uncomment if using Ollama
+# langchain-ollama==0.0.1
 
-# Pydantic for data validation
-pydantic
-pydantic-settings
+# Optional: Uncomment if using Google Gemini
+# langchain-google-genai==0.0.3
 
+# Optional: Database (if needed in future)
+# sqlalchemy==2.0.25
+# alembic==1.13.1
+# psycopg2-binary==2.9.9
 
+# Optional: Authentication (if needed in future)
+# python-jose[cryptography]==3.3.0
+# passlib[bcrypt]==1.7.4
 
-# Environment variables
-python-dotenv
+# Optional: Rate Limiting (if needed in future)
+# slowapi==0.1.9
 
-# Utilities
-python-dateutil
-
-
-elevenlabs
