@@ -48,6 +48,8 @@ class SubmitAnswerRequest(BaseModel):
 
     question_number: int = Field(..., ge=1, le=10)
     selected_option: AnswerOption
+    source: str = "ui"  # 'ui' or 'chat' - where the answer came from
+    confidence: Optional[float] = None  # Confidence if from chat extraction
 
 
 # Response Models
@@ -132,3 +134,60 @@ class SubmitAnswerResponse(BaseModel):
     next_question_number: Optional[int]
     is_complete: bool
     current_score: int
+
+
+# ============================================================================
+# CHAT ASSISTANT MODELS
+# ============================================================================
+
+
+class ChatStartRequest(BaseModel):
+    """Request to start a chat session for a question."""
+
+    question_number: int = Field(..., ge=1, le=10)
+    language: Language = Language.EN
+
+
+class ChatMessageRequest(BaseModel):
+    """Request to send a message in the chat."""
+
+    message: str = Field(..., min_length=1)
+    chat_id: str
+
+
+class ChatMessage(BaseModel):
+    """A chat message."""
+
+    role: str  # 'user' or 'assistant'
+    content: str
+    timestamp: str  # ISO format datetime
+
+
+class ChatStartResponse(BaseModel):
+    """Response after starting a chat session."""
+
+    message: str  # Welcome message from assistant
+    chat_id: str
+    existing_messages: list[ChatMessage] = []  # Previous messages if chat was reopened
+
+
+class ChatMessageResponse(BaseModel):
+    """Response after sending a chat message."""
+
+    message: str  # Bot's response
+    extracted_option: Optional[AnswerOption] = None  # If answer was extracted
+    is_complete: bool = False  # True if answer successfully extracted
+    next_question_number: Optional[int] = None  # Next question to move to
+    confidence: Optional[float] = None  # Confidence of extraction (0.0-1.0)
+
+
+# ============================================================================
+# SPEECH MODELS
+# ============================================================================
+
+
+class SynthesizeSpeechRequest(BaseModel):
+    """Request to synthesize speech from text."""
+
+    text: str = Field(..., min_length=1, max_length=5000)
+    language: Language = Language.EN

@@ -4,3 +4,51 @@ pydantic==2.10.3
 pydantic-settings==2.6.1
 python-dotenv==1.0.1
 python-jose[cryptography]==3.3.0
+# FastAPI and server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# LangChain and LangGraph
+langchain
+langgraph
+langchain-openai
+langchain-ollama
+langchain-google-genai
+langchain-core
+langchain-community
+
+
+# Pydantic for data validation
+pydantic
+pydantic-settings
+
+# Authentication and security
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt>=3.2.0,<4.0.0  # Pin to compatible version with passlib
+python-multipart
+
+# Rate limiting
+slowapi
+
+# Environment variables
+python-dotenv
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+httpx
+
+# Utilities
+python-dateutil
+
+# Email
+aiosmtplib
+email-validator
+
+# Speech Services (ASR & TTS)
+httpx>=0.27.0  # Async HTTP client for ElevenLabs API (TTS & ASR)
+
+elevenlabs

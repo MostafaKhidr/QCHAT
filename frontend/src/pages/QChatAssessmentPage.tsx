@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, MessageCircle } from 'lucide-react';
 import { Button, Card, ProgressBar, VideoPlaceholder } from '../components/ui';
+import QChatAssistantModal from '../components/modals/QChatAssistantModal';
 import qchatAPI from '../services/qchat-api';
 import useSessionStore from '../store/sessionStore';
 import { RiskLevel, SessionStatus } from '../types/api.types';
@@ -28,6 +29,9 @@ const QChatAssessmentPage: React.FC = () => {
 
   // Store answers for navigation
   const [answersHistory, setAnswersHistory] = useState<Map<number, string>>(new Map());
+
+  // Chat assistant modal state
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Session store
   const { updateSessionStatus, updateSessionScore, currentSession } = useSessionStore();
@@ -156,6 +160,58 @@ const QChatAssessmentPage: React.FC = () => {
       } else if (response.next_question_number) {
         // Move to next question
         setCurrentQuestionNumber(response.next_question_number);
+        // Update status to in_progress if not already
+        if (currentSession?.status === SessionStatus.CREATED) {
+          updateSessionStatus(SessionStatus.IN_PROGRESS);
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit answer');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChatAnswer = async (option: string, confidence: number) => {
+    // Chat assistant extracted an answer - auto-submit it
+    if (!token) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Save answer to history
+      setAnswersHistory(prev => new Map(prev).set(currentQuestionNumber, option));
+
+      const response: QChatSubmitAnswerResponse = await qchatAPI.submitAnswer(token, {
+        question_number: currentQuestionNumber,
+        selected_option: option as QChatAnswerOption,
+      });
+
+      if (response.is_complete) {
+        // Assessment complete
+        updateSessionStatus(SessionStatus.COMPLETED);
+
+        // Fetch report to get final score and risk level
+        try {
+          const report = await qchatAPI.getReport(token);
+          let riskLevel: RiskLevel = RiskLevel.LOW;
+          if (report.risk_level === 'high') {
+            riskLevel = RiskLevel.HIGH;
+          } else if (report.risk_level === 'medium') {
+            riskLevel = RiskLevel.MEDIUM;
+          }
+          updateSessionScore(report.total_score, riskLevel);
+        } catch (err) {
+          console.error('Failed to fetch report after completion:', err);
+        }
+
+        // Navigate to report
+        navigate(`/qchat/report/${token}`);
+      } else if (response.next_question_number) {
+        // Move to next question
+        setCurrentQuestionNumber(response.next_question_number);
+        setSelectedOption(null); // Clear selection for next question
         // Update status to in_progress if not already
         if (currentSession?.status === SessionStatus.CREATED) {
           updateSessionStatus(SessionStatus.IN_PROGRESS);
@@ -354,6 +410,27 @@ const QChatAssessmentPage: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Floating AI Assistant Button */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 group hover:scale-110"
+          aria-label={i18n.language === 'ar' ? 'مساعد الذكاء الاصطناعي' : 'AI Assistant'}
+        >
+          <MessageCircle size={28} className="text-white" />
+        </button>
+      )}
+
+      {/* AI Assistant Modal */}
+      <QChatAssistantModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        questionNumber={currentQuestionNumber}
+        token={token || ''}
+        language={(i18n.language === 'ar' ? 'ar' : 'en') as 'en' | 'ar'}
+        onAnswerExtracted={handleChatAnswer}
+      />
     </div>
   );
 };

@@ -2,12 +2,18 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from .config import settings
 from .models import (
     Answer,
+    ChatMessage,
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ChatStartRequest,
+    ChatStartResponse,
     CreateSessionRequest,
     CreateSessionResponse,
     QuestionOption,
@@ -17,12 +23,20 @@ from .models import (
     SessionStatus,
     SubmitAnswerRequest,
     SubmitAnswerResponse,
+    SynthesizeSpeechRequest,
 )
 from .data.qchat_questions import QCHAT_QUESTIONS, get_question
 from .scoring import assess_risk, calculate_point, calculate_total_score, get_recommendations_bilingual
+from .services.speech_service import speech_service
 from .utils import (
+    clear_chat_state,
     generate_session_token,
+    get_chat_messages,
+    initialize_chat_state,
+    load_chat_state,
     load_session,
+    save_chat_answer,
+    save_chat_message,
     save_session,
     session_exists,
 )
@@ -330,6 +344,323 @@ def get_all_questions():
         )
 
     return questions
+
+
+# ============================================================================
+# CHAT ASSISTANT ENDPOINTS
+# ============================================================================
+
+@app.post("/api/qchat/sessions/{session_token}/chat/start", response_model=ChatStartResponse)
+def start_chat(session_token: str, request: ChatStartRequest):
+    """
+    Start a chat session for a specific question.
+
+    If chat already exists for this question, returns existing messages.
+    Otherwise, initializes new chat and returns welcome message.
+    """
+    # Validate session exists
+    session_data = load_session(session_token)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Validate question number
+    if request.question_number < 1 or request.question_number > 10:
+        raise HTTPException(status_code=400, detail="Question number must be between 1 and 10")
+
+    # Get question data
+    question_data = get_question(request.question_number)
+    if not question_data:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # Check if chat already exists for this question
+    existing_chat = load_chat_state(session_token, request.question_number)
+
+    if existing_chat and existing_chat.get("active_question") == request.question_number:
+        # Chat exists - return existing messages
+        messages = existing_chat.get("messages", [])
+        chat_messages = [
+            ChatMessage(
+                role=msg["role"],
+                content=msg["content"],
+                timestamp=msg["timestamp"].isoformat() if isinstance(msg["timestamp"], datetime) else msg["timestamp"]
+            )
+            for msg in messages
+        ]
+
+        # Get last message as welcome (should be assistant message)
+        welcome_msg = messages[-1]["content"] if messages else "Welcome back!"
+
+        return ChatStartResponse(
+            message=welcome_msg,
+            chat_id=existing_chat.get("chat_id", ""),
+            existing_messages=chat_messages
+        )
+
+    # Initialize new chat
+    import uuid
+    chat_id = str(uuid.uuid4())
+
+    initialize_chat_state(session_token, request.question_number, chat_id)
+
+    # Generate welcome message using the workflow
+    from .workflows.qchat_assistant_graph import create_qchat_assistant_graph
+    from .data.qchat_questions import QChatDatabase
+
+    # Get question text in appropriate language
+    lang_key = "arabic" if request.language.value == "ar" else "english"
+    qchat_db = QChatDatabase()
+    q_data = qchat_db.get_question(request.question_number, lang_key)
+
+    question_text = ""
+    options_list = []
+    if q_data:
+        question_text = q_data.get("conversational", q_data.get("formal", ""))
+        # Format options for state
+        q_options = q_data.get("options", [])
+        for opt in q_options:
+            options_list.append({
+                "value": opt["value"],
+                "label": opt["label"],
+                "example": q_data.get("examples", {}).get(opt["value"], [""])[0] if q_data.get("examples") else ""
+            })
+
+    # Initialize workflow
+    graph = create_qchat_assistant_graph()
+
+    # Initial state
+    initial_state = {
+        "session_token": session_token,
+        "current_question_number": request.question_number,
+        "language": request.language.value,
+        "question_text": question_text,
+        "options": options_list,
+        "parent_name": session_data.get("parent_name", ""),
+        "child_name": session_data.get("child_name", ""),
+        "chat_id": chat_id
+    }
+
+    # Invoke workflow to get welcome message (just first node)
+    config = {"configurable": {"thread_id": chat_id}}
+    result = graph.invoke(initial_state, config)
+
+    welcome_message = result.get("bot_response", "Hello! How can I help you with this question?")
+
+    # Save welcome message to session
+    save_chat_message(session_token, "assistant", welcome_message)
+
+    return ChatStartResponse(
+        message=welcome_message,
+        chat_id=chat_id,
+        existing_messages=[
+            ChatMessage(
+                role="assistant",
+                content=welcome_message,
+                timestamp=datetime.utcnow().isoformat()
+            )
+        ]
+    )
+
+
+@app.post("/api/qchat/sessions/{session_token}/chat/message", response_model=ChatMessageResponse)
+def send_chat_message(session_token: str, request: ChatMessageRequest):
+    """
+    Send a message to the chat assistant and get a response.
+
+    If the assistant extracts an answer (A-E option), it returns that in the response.
+    """
+    # Validate session exists
+    session_data = load_session(session_token)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Load chat state
+    chat_state = session_data.get("chat_state")
+    if not chat_state or chat_state.get("chat_id") != request.chat_id:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+
+    question_number = chat_state.get("active_question")
+    if not question_number:
+        raise HTTPException(status_code=400, detail="No active question in chat")
+
+    # Save user message
+    save_chat_message(session_token, "user", request.message)
+
+    # Use the graph workflow to process the message
+    from .workflows.qchat_assistant_graph import create_qchat_assistant_graph
+    from .data.qchat_questions import QChatDatabase
+
+    # Get question data
+    language = session_data.get("language", "en")
+    lang_key = "arabic" if language == "ar" else "english"
+    qchat_db = QChatDatabase()
+    q_data = qchat_db.get_question(question_number, lang_key)
+
+    question_text = ""
+    options_list = []
+    if q_data:
+        question_text = q_data.get("conversational", q_data.get("formal", ""))
+        q_options = q_data.get("options", [])
+        for opt in q_options:
+            options_list.append({
+                "value": opt["value"],
+                "label": opt["label"],
+                "example": q_data.get("examples", {}).get(opt["value"], [""])[0] if q_data.get("examples") else ""
+            })
+
+    # Get conversation history from session
+    messages = get_chat_messages(session_token, question_number)
+    # Convert messages to conversation history format
+    conversation_history = [
+        {"role": msg["role"], "content": msg["content"]}
+        for msg in messages
+    ]
+
+    # Initialize workflow
+    graph = create_qchat_assistant_graph()
+
+    # Prepare state with current message and conversation history
+    current_state = {
+        "session_token": session_token,
+        "current_question_number": question_number,
+        "language": language,
+        "question_text": question_text,
+        "options": options_list,
+        "parent_name": session_data.get("parent_name", ""),
+        "child_name": session_data.get("child_name", ""),
+        "chat_id": request.chat_id,
+        "current_message": request.message,  # Set the user's message
+        "conversation_history": conversation_history  # Include existing conversation
+    }
+
+    # Invoke workflow to process the message
+    config = {
+        "configurable": {
+            "thread_id": request.chat_id
+        },
+        "recursion_limit": 15
+    }
+    
+    result = graph.invoke(current_state, config)
+
+    # Get bot response from result
+    bot_response = result.get("bot_response", "")
+    extracted_option = result.get("extracted_option")
+    is_complete = result.get("is_answer_complete", False)
+    confidence = result.get("extraction_confidence", 0.0)
+
+    # Save bot response to session
+    if bot_response:
+        save_chat_message(session_token, "assistant", bot_response)
+
+    # If answer extracted, save it to session
+    if is_complete and extracted_option and extracted_option in ["A", "B", "C", "D", "E"]:
+        save_chat_answer(session_token, question_number, extracted_option, confidence, source="chat")
+        next_q = question_number + 1 if question_number < 10 else None
+    else:
+        next_q = None
+
+    return ChatMessageResponse(
+        message=bot_response,
+        extracted_option=extracted_option if is_complete else None,
+        is_complete=is_complete,
+        next_question_number=next_q,
+        confidence=confidence if is_complete else None
+    )
+
+
+@app.delete("/api/qchat/sessions/{session_token}/chat")
+def close_chat(session_token: str):
+    """Close/clear the current chat session."""
+    # Validate session exists
+    if not session_exists(session_token):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Clear chat state
+    clear_chat_state(session_token)
+
+    return {"message": "Chat session closed successfully"}
+
+
+# ============================================================================
+# SPEECH ENDPOINTS (TTS & ASR)
+# ============================================================================
+
+@app.post("/api/speech/synthesize")
+async def synthesize_speech(request: SynthesizeSpeechRequest):
+    """
+    Synthesize speech from text using ElevenLabs TTS.
+    
+    Args:
+        request: SynthesizeSpeechRequest with text and language
+    
+    Returns:
+        Audio file in MP3 format
+    """
+    try:
+        audio_bytes = await speech_service.synthesize_speech(request.text, request.language.value)
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": f'attachment; filename="speech.mp3"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS error: {str(e)}")
+
+
+@app.post("/api/speech/transcribe")
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    language: str = Query("en", description="Language code ('en' for English, 'ar' for Arabic)")
+):
+    """
+    Transcribe audio to text using ElevenLabs ASR.
+    
+    Args:
+        audio: Audio file (WAV, MP3, M4A, WEBM, OGG, FLAC, AAC, etc.)
+        language: Language code ('en' for English, 'ar' for Arabic, or None for auto-detect)
+    
+    Returns:
+        {
+            "text": "transcribed text",
+            "confidence": 0.95,
+            "language": "ar",
+            "success": True,
+            "error": None
+        }
+    """
+    if language not in ["en", "ar"]:
+        language = "en"  # Default to English if invalid
+    
+    try:
+        # Read audio file
+        audio_data = await audio.read()
+        
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="Audio file is empty")
+        
+        # Transcribe using speech service
+        result = await speech_service.transcribe_audio(audio_data, language)
+        
+        return result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        return {
+            "text": "",
+            "confidence": 0.0,
+            "language": language,
+            "success": False,
+            "error": f"Transcription error: {str(e)}"
+        }
+
+
+@app.get("/api/speech/status")
+def get_speech_status():
+    """Get status of speech services (TTS and ASR)."""
+    return speech_service.get_service_status()
 
 
 if __name__ == "__main__":

@@ -44,3 +44,9 @@ __pycache__/
 backend/data/sessions/*.json
 
 # Note: Personal files (backups, local test data, dev docs) are in .git/info/exclude
+.DS_Store
+backend/data/sessions/*.json
+backend/logs/*.log
+backend/.langgraph.json
+backend/langgraph.json
+backend/.langgraph_api/*

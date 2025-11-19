@@ -1,6 +1,11 @@
 """Configuration settings for Q-CHAT backend."""
-from pydantic import ConfigDict
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env file from backend directory before creating Settings
+_env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=_env_path, override=False)
 
 
 class Settings(BaseSettings):
@@ -64,10 +69,14 @@ class Settings(BaseSettings):
     elevenlabs_voice_id_en_female: str = ""
     elevenlabs_asr_model: str = "scribe_v1"
 
-    model_config = ConfigDict(
-        env_file=".env",
+    model_config = SettingsConfigDict(
+        # Use the .env file path (already loaded above, but this ensures pydantic also reads it)
+        env_file=str(_env_path),
+        env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore"  # Ignore extra fields instead of forbidding them
+        extra="ignore",  # Ignore extra fields instead of forbidding them
+        # Load from environment variables first, then .env file
+        env_ignore_empty=True,
     )
 
     @property

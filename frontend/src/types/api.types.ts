@@ -308,3 +308,35 @@ export interface QChatLocalSession {
   total_score?: number;
   recommend_referral?: boolean;
 }
+
+// ==================== QCHAT Chat Assistant Types ====================
+
+export interface QChatChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface QChatChatStartRequest {
+  question_number: number;
+  language: LanguageType;
+}
+
+export interface QChatChatStartResponse {
+  message: string;
+  chat_id: string;
+  existing_messages: QChatChatMessage[];
+}
+
+export interface QChatChatMessageRequest {
+  message: string;
+  chat_id: string;
+}
+
+export interface QChatChatMessageResponse {
+  message: string;
+  extracted_option?: QChatAnswerOption;
+  is_complete: boolean;
+  next_question_number?: number;
+  confidence?: number;
+}
