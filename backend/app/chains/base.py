@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
+# from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.language_models import BaseChatModel
 
@@ -43,12 +43,12 @@ def get_llm(temperature: float = 0.7, model: str = None) -> BaseChatModel:
             api_key=settings.openai_api_key,
             reasoning_effort="minimal"
         )
-    elif settings.llm_provider == "ollama":
-        return ChatOllama(
-            model=model or "gpt-oss-20b",
-            temperature=temperature,
-            base_url=settings.ollama_base_url,
-        )
+    # elif settings.llm_provider == "ollama":
+    #     return ChatOllama(
+    #         model=model or "gpt-oss-20b",
+    #         temperature=temperature,
+    #         base_url=settings.ollama_base_url,
+    #     )
     elif settings.llm_provider == "gemini":
         # ChatGoogleGenerativeAI can use GOOGLE_API_KEY env var or google_api_key parameter
         kwargs = {
