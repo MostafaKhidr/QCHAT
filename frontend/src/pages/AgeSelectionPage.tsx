@@ -23,7 +23,7 @@ const AgeSelectionPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { createQChatSession, isCreating, createError } = useSession();
+  const { createSession, isCreating, createError } = useSession();
 
   const locationState = location.state as LocationState | null;
 
@@ -88,7 +88,7 @@ const AgeSelectionPage: React.FC = () => {
       return;
     }
 
-    const token = await createQChatSession({
+    const token = await createSession({
       child_name: formData.childName,
       child_age_months: formData.childAgeMonths,
       parent_name: formData.parentName,

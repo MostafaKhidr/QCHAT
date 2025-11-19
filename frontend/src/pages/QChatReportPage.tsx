@@ -347,7 +347,7 @@ ${divider}
           >
             <span className="relative z-10 flex items-center gap-2">
               <Download size={20} className="animate-bounce group-hover:animate-none" />
-              {t('history.downloadReport')}
+              {t('report.printReport', 'Print Report')}
             </span>
             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
           </Button>

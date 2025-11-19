@@ -18,7 +18,7 @@ from .models import (
     SubmitAnswerRequest,
     SubmitAnswerResponse,
 )
-from .questions import QCHAT_QUESTIONS, get_question
+from .data.qchat_questions import QCHAT_QUESTIONS, get_question
 from .scoring import assess_risk, calculate_point, calculate_total_score, get_recommendations_bilingual
 from .utils import (
     generate_session_token,

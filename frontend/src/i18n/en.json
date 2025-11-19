@@ -229,7 +229,8 @@
       "reportNotFound": "Report not found"
     },
     "months": "months",
-    "disclaimer": "This screening tool is not a diagnosis. A comprehensive evaluation by a qualified professional is needed for diagnosis."
+    "disclaimer": "This screening tool is not a diagnosis. A comprehensive evaluation by a qualified professional is needed for diagnosis.",
+    "printReport": "Print Report"
   },
   "contact": {
     "title": "Contact Us",
@@ -301,7 +302,7 @@
       },
       "viewReport": "View Report",
       "viewFullResults": "View Full Results",
-      "downloadReport": "Download My Report",
+      "printReport": "Print Report",
       "continue": "Continue Session",
       "notAvailable": "N/A"
     },

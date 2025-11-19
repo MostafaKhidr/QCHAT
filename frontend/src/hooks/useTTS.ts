@@ -21,7 +21,7 @@ export const useTTS = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEnabled, setIsEnabled] = useState(() => {
     // Load TTS preference from localStorage
-    const saved = localStorage.getItem('mchat-tts-enabled');
+    const saved = localStorage.getItem('qchat-tts-enabled');
     return saved === 'true';
   });
 
@@ -31,7 +31,7 @@ export const useTTS = () => {
 
   // Save preference to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('mchat-tts-enabled', String(isEnabled));
+    localStorage.setItem('qchat-tts-enabled', String(isEnabled));
   }, [isEnabled]);
 
   // Cleanup on unmount

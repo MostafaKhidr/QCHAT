@@ -278,13 +278,13 @@ const SessionHistoryPage: React.FC = () => {
 
   const handleViewResults = (session: typeof sessionHistory[0], e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/report/${session.session_token}`);
+    navigate(`/qchat/report/${session.session_token}`);
   };
 
   const handleDownloadReport = (session: typeof sessionHistory[0], e: React.MouseEvent) => {
     e.stopPropagation();
     // Navigate to report page and trigger print
-    navigate(`/report/${session.session_token}`);
+    navigate(`/qchat/report/${session.session_token}`);
     // Small delay to ensure page loads before printing
     setTimeout(() => {
       window.print();
@@ -540,7 +540,7 @@ const SessionHistoryPage: React.FC = () => {
                                 icon={<Download size={16} />}
                                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
                               >
-                                {t('history.sessionCard.downloadReport', 'Download Report')}
+                                {t('history.sessionCard.printReport', 'Print Report')}
                               </Button>
                             </>
                           ) : (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Globe, FileText, MessageCircle, CheckCircle, Home } from 'lucide-react';
+import { Menu, X, Globe, FileText, CheckCircle, Home } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { i18n } = useTranslation();
@@ -12,7 +12,6 @@ const Header: React.FC = () => {
   const currentLanguage = i18n.language;
   const isHomePage = location.pathname === '/';
   const isHistoryPage = location.pathname === '/history';
-  const isContactPage = location.pathname === '/contact';
 
   const toggleLanguage = () => {
     const newLang = currentLanguage === 'en' ? 'ar' : 'en';
@@ -55,17 +54,6 @@ const Header: React.FC = () => {
                 title="My Sessions"
               >
                 <FileText size={20} />
-              </button>
-            )}
-            {/* Contact icon - show on all pages except contact page */}
-            {!isContactPage && (
-              <button
-                onClick={() => navigate('/contact')}
-                className="p-2 text-gray-600 hover:text-success-700 transition-colors rounded-lg hover:bg-gray-50"
-                aria-label="Contact Us"
-                title="Contact Us"
-              >
-                <MessageCircle size={20} />
               </button>
             )}
             <button
@@ -116,19 +104,6 @@ const Header: React.FC = () => {
                   aria-label="My Sessions"
                 >
                   <FileText size={20} />
-                </button>
-              )}
-              {/* Contact icon - show on all pages except contact page */}
-              {!isContactPage && (
-                <button
-                  onClick={() => {
-                    navigate('/contact');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="p-2 text-gray-600 hover:text-success-700 transition-colors"
-                  aria-label="Contact Us"
-                >
-                  <MessageCircle size={20} />
                 </button>
               )}
               <button

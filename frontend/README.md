@@ -86,7 +86,7 @@ frontend_user/
 │   ├── pages/              # Page components (routes)
 │   ├── services/
 │   │   ├── api.ts          # Axios instance
-│   │   └── mchat-api.ts    # API client methods
+│   │   └── qchat-api.ts    # API client methods
 │   ├── hooks/              # Custom React hooks
 │   ├── store/              # Zustand global state
 │   ├── types/              # TypeScript type definitions
