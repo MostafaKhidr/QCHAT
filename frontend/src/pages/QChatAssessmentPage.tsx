@@ -234,19 +234,7 @@ const QChatAssessmentPage: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <Card padding="lg">
-              {/* Question Text */}
-              <div className="mb-8">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-relaxed">
-                  {getQuestionText()}
-                </h2>
-              </div>
-
-              {/* Instruction */}
-              <p className="text-sm text-gray-600 mb-6">
-                {t('qchat.watchVideo')}
-              </p>
-
-              {/* Video Display (Positive Only) */}
+              {/* Video Display (Positive Only) - Shown First */}
               <div className="mb-8">
                 {currentQuestion.video_positive ? (
                   <div className="max-w-3xl mx-auto">
@@ -279,11 +267,15 @@ const QChatAssessmentPage: React.FC = () => {
                 )}
               </div>
 
+              {/* Question Text */}
+              <div className="mb-8">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-relaxed">
+                  {getQuestionText()}
+                </h2>
+              </div>
+
               {/* Answer Options */}
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('qchat.selectAnswer')}
-                </h3>
                 <div className="space-y-3">
                   {currentQuestion.options.map((option) => (
                     <button

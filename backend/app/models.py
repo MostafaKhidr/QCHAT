@@ -89,6 +89,8 @@ class Answer(BaseModel):
     option_label: str
     scored_point: bool
     answered_at: datetime
+    question_text_en: str
+    question_text_ar: str
 
 
 class SessionResponse(BaseModel):

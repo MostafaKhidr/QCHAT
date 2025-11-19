@@ -11,7 +11,8 @@ dist/
 dist-ssr/
 build/
 *.local
-
+__pycache__
+__pycache__/*
 # Environment variables
 .env
 .env.production.local
@@ -45,3 +46,4 @@ backend/data/sessions/*.json
 
 # Note: Personal files (backups, local test data, dev docs) are in .git/info/exclude
 
+backend/app/__pycache__/*

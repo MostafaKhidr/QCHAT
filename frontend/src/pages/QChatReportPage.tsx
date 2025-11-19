@@ -20,7 +20,7 @@ import type { QChatReport } from '../types/api.types';
 const QChatReportPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [report, setReport] = useState<QChatReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +101,8 @@ ${separator}
 
 ${report.answers.map((ans) => {
   const pointStatus = ans.scored_point ? '● SCORED (1 point)' : '○ No point';
-  return `Question ${ans.question_number}
+  const questionText = i18n.language === 'ar' ? ans.question_text_ar : ans.question_text_en;
+  return `Question ${ans.question_number}: ${questionText}
 Selected: ${ans.selected_option} - ${ans.option_label}
 Result:   ${pointStatus}
 ${separator}`;
@@ -304,9 +305,6 @@ ${divider}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="font-bold text-gray-900">
-                          Q{answer.question_number}
-                        </span>
                         <span
                           className={`text-xs px-2 py-1 rounded-full font-medium ${
                             answer.scored_point
@@ -319,6 +317,9 @@ ${divider}
                             : t('qchat.report.noPoint')}
                         </span>
                       </div>
+                      <p className="text-lg font-semibold text-gray-900 mb-2">
+                        {i18n.language === 'ar' ? answer.question_text_ar : answer.question_text_en}
+                      </p>
                       <p className="text-gray-700 mb-1">
                         <span className="font-semibold">{answer.selected_option}:</span>{' '}
                         {answer.option_label}

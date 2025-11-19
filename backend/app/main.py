@@ -270,16 +270,24 @@ def get_report(session_token: str):
     recommendations = bilingual_recs.get(language, bilingual_recs["en"])[risk_level]
 
     # Convert answers to Answer models
-    answers = [
-        Answer(
-            question_number=ans["question_number"],
-            selected_option=ans["selected_option"],
-            option_label=ans["option_label"],
-            scored_point=ans["scored_point"],
-            answered_at=ans["answered_at"],
+    answers = []
+    for ans in session_data["answers"]:
+        # Get question text for this answer
+        question_data = get_question(ans["question_number"])
+        question_text_en = question_data["text_en"] if question_data else ""
+        question_text_ar = question_data["text_ar"] if question_data else ""
+        
+        answers.append(
+            Answer(
+                question_number=ans["question_number"],
+                selected_option=ans["selected_option"],
+                option_label=ans["option_label"],
+                scored_point=ans["scored_point"],
+                answered_at=ans["answered_at"],
+                question_text_en=question_text_en,
+                question_text_ar=question_text_ar,
+            )
         )
-        for ans in session_data["answers"]
-    ]
 
     return ReportResponse(
         session_token=session_data["session_token"],

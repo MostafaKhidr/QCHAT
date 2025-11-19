@@ -252,6 +252,8 @@ export interface QChatAnswer {
   option_label: string;
   scored_point: boolean;
   answered_at: string;
+  question_text_en: string;
+  question_text_ar: string;
 }
 
 export interface QChatSessionResponse {
