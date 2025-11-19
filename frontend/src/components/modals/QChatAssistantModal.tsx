@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { X, MessageCircle, Mic, Send } from 'lucide-react';
+import { X, Mic, Send } from 'lucide-react';
 import ChatBubble from '../ui/ChatBubble';
 import { useTTS } from '../../hooks/useTTS';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
@@ -39,13 +39,12 @@ export default function QChatAssistantModal({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // TTS hook
-  const { speak, stop: stopTTS, isEnabled: isTTSEnabled, toggleTTS, isSpeaking: isTTSSpeaking } = useTTS();
+  const { speak, isEnabled: isTTSEnabled, isSpeaking: isTTSSpeaking } = useTTS();
 
   // ASR hook
   const {
     isListening,
     transcript,
-    confidence: asrConfidence,
     error: voiceError,
     isProcessing: isProcessingVoice,
     startListening,

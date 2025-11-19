@@ -172,7 +172,7 @@ const QChatAssessmentPage: React.FC = () => {
     }
   };
 
-  const handleChatAnswer = async (option: string, confidence: number) => {
+  const handleChatAnswer = async (option: string, _confidence: number) => {
     // Chat assistant extracted an answer - auto-submit it
     if (!token) return;
 
