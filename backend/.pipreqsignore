@@ -1,0 +1,12 @@
+# Ignore directories and files that cause encoding issues
+app/logs/
+app/__pycache__/
+**/__pycache__/
+*.log
+*.pyc
+data/
+.venv/
+venv/
+*.env
+langgraph.json
+

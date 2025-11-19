@@ -1,40 +1,10 @@
-# Web Framework
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
-
-# LangChain & LangGraph
-langchain==0.1.6
-langchain-core==0.1.23
-langchain-openai==0.0.5
-langgraph==0.0.20
-
-# Data Validation & Settings
-# Using pydantic 2.9.0+ which has better pre-built wheel support (avoids Rust compilation)
-pydantic==2.9.2
-pydantic-settings==2.5.2
-
-# Environment Variables
-python-dotenv==1.0.1
-
-# HTTP Client
-httpx==0.26.0
-
-# Optional: Uncomment if using Ollama
-# langchain-ollama==0.0.1
-
-# Optional: Uncomment if using Google Gemini
-# langchain-google-genai==0.0.3
-
-# Optional: Database (if needed in future)
-# sqlalchemy==2.0.25
-# alembic==1.13.1
-# psycopg2-binary==2.9.9
-
-# Optional: Authentication (if needed in future)
-# python-jose[cryptography]==3.3.0
-# passlib[bcrypt]==1.7.4
-
-# Optional: Rate Limiting (if needed in future)
-# slowapi==0.1.9
-
+fastapi==0.121.3
+python-multipart==0.0.9
+httpx==0.28.1
+langchain_core==1.0.7
+langchain_openai==1.0.3
+langgraph==1.0.3
+pydantic==2.12.4
+pydantic_settings==2.12.0
+python-dotenv==1.2.1
+uvicorn==0.38.0
