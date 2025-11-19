@@ -13,7 +13,7 @@ python-multipart
 langchain
 langgraph
 langchain-openai
-langchain-google-genai
+# langchain-google-genai
 langchain-core
 langchain-community
 
@@ -22,32 +22,13 @@ langchain-community
 pydantic
 pydantic-settings
 
-# Authentication and security
-python-jose[cryptography]
-passlib[bcrypt]
-bcrypt>=3.2.0,<4.0.0  # Pin to compatible version with passlib
-python-multipart
 
-# Rate limiting
-slowapi
 
 # Environment variables
 python-dotenv
 
-# Testing
-pytest
-pytest-asyncio
-pytest-cov
-httpx
-
 # Utilities
 python-dateutil
 
-# Email
-aiosmtplib
-email-validator
-
-# Speech Services (ASR & TTS)
-httpx>=0.27.0  # Async HTTP client for ElevenLabs API (TTS & ASR)
 
 elevenlabs

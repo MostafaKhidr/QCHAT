@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from langchain_openai import ChatOpenAI
 # from langchain_ollama import ChatOllama
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.language_models import BaseChatModel
 
 # Add project root to Python path to enable absolute imports
@@ -49,15 +49,15 @@ def get_llm(temperature: float = 0.7, model: str = None) -> BaseChatModel:
     #         temperature=temperature,
     #         base_url=settings.ollama_base_url,
     #     )
-    elif settings.llm_provider == "gemini":
-        # ChatGoogleGenerativeAI can use GOOGLE_API_KEY env var or google_api_key parameter
-        kwargs = {
-            "model": model or "gemini-pro",
-            "temperature": temperature,
-        }
-        if settings.google_api_key:
-            kwargs["google_api_key"] = settings.google_api_key
-        return ChatGoogleGenerativeAI(**kwargs)
+    # elif settings.llm_provider == "gemini":
+    #     # ChatGoogleGenerativeAI can use GOOGLE_API_KEY env var or google_api_key parameter
+    #     kwargs = {
+    #         "model": model or "gemini-pro",
+    #         "temperature": temperature,
+    #     }
+    #     if settings.google_api_key:
+    #         kwargs["google_api_key"] = settings.google_api_key
+    #     return ChatGoogleGenerativeAI(**kwargs)
     else:
         raise ValueError(f"Unsupported LLM provider: {settings.llm_provider}")
 
