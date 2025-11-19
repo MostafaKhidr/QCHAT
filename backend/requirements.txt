@@ -1,5 +1,6 @@
 # Web Framework
 fastapi==0.109.0
+uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
 # LangChain & LangGraph
@@ -9,8 +10,9 @@ langchain-openai==0.0.5
 langgraph==0.0.20
 
 # Data Validation & Settings
-pydantic==2.5.3
-pydantic-settings==2.1.0
+# Using pydantic 2.9.0+ which has better pre-built wheel support (avoids Rust compilation)
+pydantic==2.9.2
+pydantic-settings==2.5.2
 
 # Environment Variables
 python-dotenv==1.0.1
