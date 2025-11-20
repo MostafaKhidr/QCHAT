@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     data_storage_path: str = "./data/sessions"
 
     # CORS
-    cors_origins: str = "http://localhost:5173,http://localhost:3000"
-    allowed_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8080"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,https://qchatv2.onrender.com"
+    allowed_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8080,https://qchatv2.onrender.com"
 
     # Server
     port: int = 8000
