@@ -5,6 +5,7 @@ import { X, Mic, Send } from 'lucide-react';
 import ChatBubble from '../ui/ChatBubble';
 import { useTTS } from '../../hooks/useTTS';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
+import qchatChatAPI from '../../services/qchat-chat-api';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -84,25 +85,10 @@ export default function QChatAssistantModal({
   const initializeChat = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/qchat/sessions/${token}/chat/start`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            question_number: questionNumber,
-            language: language,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to start chat');
-      }
-
-      const data = await response.json();
+      const data = await qchatChatAPI.startChat(token, {
+        question_number: questionNumber,
+        language: language,
+      });
 
       setChatId(data.chat_id);
       setMessages(data.existing_messages || []);
@@ -145,25 +131,10 @@ export default function QChatAssistantModal({
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/qchat/sessions/${token}/chat/message`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: userMessage.content,
-            chat_id: chatId,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
-      const data = await response.json();
+      const data = await qchatChatAPI.sendMessage(token, {
+        message: userMessage.content,
+        chat_id: chatId,
+      });
 
       // Add assistant response
       const assistantMessage: ChatMessage = {
@@ -183,7 +154,7 @@ export default function QChatAssistantModal({
       if (data.is_complete && data.extracted_option) {
         // Wait 2 seconds before closing to let user see the message
         setTimeout(() => {
-          onAnswerExtracted(data.extracted_option, data.confidence || 1.0);
+          onAnswerExtracted(data.extracted_option!, data.confidence || 1.0);
           onClose();
         }, 2000);
       }
