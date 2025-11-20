@@ -43,4 +43,6 @@ __pycache__/
 # Backend - Session data (user data, should not be in git)
 backend/data/sessions/*.json
 
-# Note: Personal files (backups, local test data, dev docs) are in .git/info/exclude
+# Note: Personal files (backups, local test data, dev docs) are in .git/info/excludebackend/.langgraph_api
+
+backend/.langgraph_api/*

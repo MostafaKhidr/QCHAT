@@ -89,7 +89,7 @@ const QChatAssessmentPage: React.FC = () => {
     loadQuestion();
   }, [token, currentQuestionNumber, isLoadingSession]);
 
-  // Auto-play positive video when question loads
+  // Auto-play positive video when question loads or language changes
   useEffect(() => {
     const playVideo = async () => {
       if (positiveVideoRef.current && currentQuestion?.video_positive) {
@@ -104,7 +104,7 @@ const QChatAssessmentPage: React.FC = () => {
     if (currentQuestion) {
       playVideo();
     }
-  }, [currentQuestion]);
+  }, [currentQuestion, i18n.language]);
 
   const handleOptionSelect = (optionValue: string) => {
     setSelectedOption(optionValue);
@@ -177,6 +177,18 @@ const QChatAssessmentPage: React.FC = () => {
     return i18n.language === 'ar' ? currentQuestion.text_ar : currentQuestion.text_en;
   };
 
+  const getVideoPath = (videoPath: string | null | undefined): string | null => {
+    if (!videoPath) return null;
+    
+    // If Arabic is selected, replace positive.mp4 with positive_ar.mp4
+    if (i18n.language === 'ar' && videoPath.includes('positive.mp4')) {
+      return videoPath.replace('positive.mp4', 'positive_ar.mp4');
+    }
+    
+    // For English or other cases, return the original path
+    return videoPath;
+  };
+
   if (isLoadingSession || isLoadingQuestion) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -236,7 +248,7 @@ const QChatAssessmentPage: React.FC = () => {
             <Card padding="lg">
               {/* Video Display (Positive Only) - Shown First */}
               <div className="mb-8">
-                {currentQuestion.video_positive ? (
+                {getVideoPath(currentQuestion.video_positive) ? (
                   <div className="max-w-3xl mx-auto">
                     <div className="mb-3">
                       <span className="inline-block px-3 py-1 bg-success-100 text-success-700 text-sm font-medium rounded-full">
@@ -250,8 +262,9 @@ const QChatAssessmentPage: React.FC = () => {
                       muted
                       loop
                       playsInline
+                      key={getVideoPath(currentQuestion.video_positive)}
                     >
-                      <source src={currentQuestion.video_positive} type="video/mp4" />
+                      <source src={getVideoPath(currentQuestion.video_positive) || ''} type="video/mp4" />
                       Your browser does not support video playback.
                     </video>
                   </div>
