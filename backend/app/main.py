@@ -141,7 +141,8 @@ def get_session(session_token: str):
 def get_question_endpoint(session_token: str, question_number: int):
     """Get a specific question."""
     # Validate session exists
-    if not session_exists(session_token):
+    session_data = load_session(session_token)
+    if not session_data:
         raise HTTPException(status_code=404, detail="Session not found")
 
     # Validate question number
@@ -153,6 +154,9 @@ def get_question_endpoint(session_token: str, question_number: int):
     if not question_data:
         raise HTTPException(status_code=404, detail="Question not found")
 
+    # Get session language
+    language = session_data.get("language", "en")
+
     # Convert to response model
     options = [
         QuestionOption(
@@ -163,13 +167,39 @@ def get_question_endpoint(session_token: str, question_number: int):
         for opt in question_data["options"]
     ]
 
+    # Get base video URLs
+    video_positive = question_data.get("video_positive")
+    video_negative = question_data.get("video_negative")
+
+    # Modify video URLs based on language
+    # For Arabic: use positive_ar.mp4, for English: use positive.mp4
+    if video_positive:
+        if language == "ar":
+            # Replace positive.mp4 with positive_ar.mp4
+            if video_positive.endswith("positive.mp4"):
+                video_positive = video_positive.replace("positive.mp4", "positive_ar.mp4")
+        else:
+            # For English, ensure we use positive.mp4 (not positive_ar.mp4)
+            if video_positive.endswith("positive_ar.mp4"):
+                video_positive = video_positive.replace("positive_ar.mp4", "positive.mp4")
+
+    if video_negative:
+        if language == "ar":
+            # Replace negative.mp4 with negative_ar.mp4 (if you have negative_ar videos)
+            if video_negative.endswith("negative.mp4"):
+                video_negative = video_negative.replace("negative.mp4", "negative_ar.mp4")
+        else:
+            # For English, ensure we use negative.mp4
+            if video_negative.endswith("negative_ar.mp4"):
+                video_negative = video_negative.replace("negative_ar.mp4", "negative.mp4")
+
     return QuestionResponse(
         question_number=question_data["question_number"],
         text_en=question_data["text_en"],
         text_ar=question_data["text_ar"],
         options=options,
-        video_positive=question_data.get("video_positive"),
-        video_negative=question_data.get("video_negative"),
+        video_positive=video_positive,
+        video_negative=video_negative,
     )
 
 
