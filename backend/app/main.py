@@ -9,6 +9,7 @@ from fastapi.responses import Response
 from .config import settings
 from .models import (
     Answer,
+    AnswerOption,
     ChatMessage,
     ChatMessageRequest,
     ChatMessageResponse,
@@ -263,22 +264,36 @@ def submit_answer(session_token: str, request: SubmitAnswerRequest):
 
     # Update current question
     next_question = request.question_number + 1
+    
+    # Check if all questions have been attempted (answered or unanswered)
+    answered_questions = set(ans.get("question_number") for ans in session_data.get("answers", []))
+    unanswered_questions = set(session_data.get("unanswered_questions", []))
+    all_attempted = answered_questions.union(unanswered_questions)
+    
+    # Add current question to answered set
+    all_attempted.add(request.question_number)
+    
     if next_question <= 10:
         session_data["current_question"] = next_question
         session_data["status"] = SessionStatus.IN_PROGRESS.value
     else:
+        # Last question answered
         session_data["current_question"] = 10
-        session_data["status"] = SessionStatus.COMPLETED.value
-        session_data["completed_at"] = datetime.utcnow()
+        # Check if all 10 questions have been attempted
+        if len(all_attempted) >= 10:
+            session_data["status"] = SessionStatus.COMPLETED.value
+            session_data["completed_at"] = datetime.utcnow()
+        else:
+            session_data["status"] = SessionStatus.IN_PROGRESS.value
 
-    # Calculate current score
+    # Calculate current score (unanswered questions are excluded automatically)
     current_score = calculate_total_score(session_data["answers"])
 
     # Save session
     save_session(session_token, session_data)
 
-    # Prepare response
-    is_complete = len(session_data["answers"]) >= 10
+    # Prepare response - check if all questions attempted
+    is_complete = len(all_attempted) >= 10
     next_question_number = None if is_complete else next_question
 
     return SubmitAnswerResponse(
@@ -548,6 +563,10 @@ def send_chat_message(session_token: str, request: ChatMessageRequest):
     # Initialize workflow
     graph = create_qchat_assistant_graph()
 
+    # Get attempt_count from chat_state if it exists
+    attempt_count = chat_state.get("attempt_count", 0)
+    print(f"📊 [MAIN] Loading attempt_count from chat_state: {attempt_count}")
+    
     # Prepare state with current message and conversation history
     current_state = {
         "session_token": session_token,
@@ -559,7 +578,8 @@ def send_chat_message(session_token: str, request: ChatMessageRequest):
         "child_name": session_data.get("child_name", ""),
         "chat_id": request.chat_id,
         "current_message": request.message,  # Set the user's message
-        "conversation_history": conversation_history  # Include existing conversation
+        "conversation_history": conversation_history,  # Include existing conversation
+        "attempt_count": attempt_count  # Preserve attempt count
     }
 
     # Invoke workflow to process the message
@@ -577,21 +597,90 @@ def send_chat_message(session_token: str, request: ChatMessageRequest):
     extracted_option = result.get("extracted_option")
     is_complete = result.get("is_answer_complete", False)
     confidence = result.get("extraction_confidence", 0.0)
+    result_attempt_count = result.get("attempt_count", 0)
+    result_next_q = result.get("next_question_number")
+
+    # Update attempt_count in chat_state
+    session_data = load_session(session_token)
+    if session_data and session_data.get("chat_state"):
+        session_data["chat_state"]["attempt_count"] = result_attempt_count
+        print(f"📊 [MAIN] Saving attempt_count to chat_state: {result_attempt_count}")
+        save_session(session_token, session_data)
 
     # Save bot response to session
     if bot_response:
         save_chat_message(session_token, "assistant", bot_response)
 
-    # If answer extracted, save it to session
+    # If answer extracted (valid A-E), return it but DON'T save yet - wait for user to confirm on Q page
+    # The answer will be saved when user explicitly submits it via submit_answer endpoint
     if is_complete and extracted_option and extracted_option in ["A", "B", "C", "D", "E"]:
-        save_chat_answer(session_token, question_number, extracted_option, confidence, source="chat")
-        next_q = question_number + 1 if question_number < 10 else None
+        # Don't save answer automatically - just return it for user to review and confirm on Q page
+        # next_q will be calculated when user submits the answer
+        next_q = None
+    elif is_complete and extracted_option == "unanswered":
+        # Question is unanswered after max attempts - don't save answer, but track it and move to next question
+        # Use next_question_number from result if available, but ensure it's valid (1-10 or None)
+        if result_next_q and 1 <= result_next_q <= 10:
+            next_q = result_next_q
+        elif question_number < 10:
+            next_q = question_number + 1
+        else:
+            next_q = None
+        
+        # Track unanswered question in session (for completion tracking, but don't include in scoring)
+        session_data = load_session(session_token)
+        if session_data:
+            # Initialize unanswered_questions list if it doesn't exist
+            if "unanswered_questions" not in session_data:
+                session_data["unanswered_questions"] = []
+            
+            # Add this question to unanswered list if not already there
+            if question_number not in session_data["unanswered_questions"]:
+                session_data["unanswered_questions"].append(question_number)
+            
+            # Check if all 10 questions have been attempted (answered or unanswered)
+            answered_questions = set(ans.get("question_number") for ans in session_data.get("answers", []))
+            unanswered_questions = set(session_data.get("unanswered_questions", []))
+            all_attempted = answered_questions.union(unanswered_questions)
+            
+            # If all 10 questions have been attempted, mark session as completed
+            if len(all_attempted) >= 10 or question_number >= 10:
+                session_data["status"] = SessionStatus.COMPLETED.value
+                session_data["completed_at"] = datetime.utcnow()
+                next_q = None  # Ensure next_q is None when session is completed
+            else:
+                # Update current_question to next question
+                if next_q:
+                    session_data["current_question"] = next_q
+            
+            save_session(session_token, session_data)
     else:
         next_q = None
 
+    # Convert extracted_option to AnswerOption enum if it's a valid value
+    extracted_option_enum = None
+    if is_complete and extracted_option:
+        if extracted_option in ["A", "B", "C", "D", "E", "unanswered"]:
+            try:
+                extracted_option_enum = AnswerOption(extracted_option)
+            except ValueError:
+                # If it's not a valid enum value, set to None
+                extracted_option_enum = None
+    
+    # Final validation: ensure next_question_number is never > 10
+    if next_q and next_q > 10:
+        print(f"⚠️ [MAIN] Warning: next_question_number was {next_q}, setting to None")
+        next_q = None
+        # Mark session as completed if we somehow got an invalid next question
+        session_data = load_session(session_token)
+        if session_data:
+            session_data["status"] = SessionStatus.COMPLETED.value
+            session_data["completed_at"] = datetime.utcnow()
+            save_session(session_token, session_data)
+    
     return ChatMessageResponse(
         message=bot_response,
-        extracted_option=extracted_option if is_complete else None,
+        extracted_option=extracted_option_enum,
         is_complete=is_complete,
         next_question_number=next_q,
         confidence=confidence if is_complete else None

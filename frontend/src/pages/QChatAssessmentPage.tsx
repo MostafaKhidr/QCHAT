@@ -49,8 +49,15 @@ const QChatAssessmentPage: React.FC = () => {
       try {
         const session = await qchatAPI.getSession(token);
 
-        // Resume from current question in session
-        setCurrentQuestionNumber(session.current_question);
+        // Resume from current question in session, but validate it's not > 10
+        const sessionQuestion = session.current_question;
+        if (sessionQuestion > 10 || session.status === SessionStatus.COMPLETED) {
+          // Session is complete or invalid question number - navigate to report
+          updateSessionStatus(SessionStatus.COMPLETED);
+          navigate(`/qchat/report/${token}`);
+          return;
+        }
+        setCurrentQuestionNumber(sessionQuestion);
 
         // Preload answers history
         const history = new Map<number, string>();
@@ -73,6 +80,14 @@ const QChatAssessmentPage: React.FC = () => {
     const loadQuestion = async () => {
       if (!token || isLoadingSession) return;
 
+      // Validate question number - should never be > 10
+      if (currentQuestionNumber > 10) {
+        console.error('[loadQuestion] Invalid question number:', currentQuestionNumber);
+        updateSessionStatus(SessionStatus.COMPLETED);
+        navigate(`/qchat/report/${token}`);
+        return;
+      }
+
       setIsLoadingQuestion(true);
       setError(null);
 
@@ -84,7 +99,14 @@ const QChatAssessmentPage: React.FC = () => {
         const previousAnswer = answersHistory.get(currentQuestionNumber);
         setSelectedOption(previousAnswer || null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load question');
+        // If question doesn't exist (e.g., question 11), navigate to report
+        if (err instanceof Error && err.message.includes('400') || currentQuestionNumber > 10) {
+          console.error('[loadQuestion] Question not found, navigating to report');
+          updateSessionStatus(SessionStatus.COMPLETED);
+          navigate(`/qchat/report/${token}`);
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load question');
+        }
       } finally {
         setIsLoadingQuestion(false);
       }
@@ -157,13 +179,25 @@ const QChatAssessmentPage: React.FC = () => {
         
         // Navigate to report
         navigate(`/qchat/report/${token}`);
-      } else if (response.next_question_number) {
-        // Move to next question
+      } else if (response.next_question_number && response.next_question_number <= 10) {
+        // Move to next question (validate it's <= 10)
+        console.log('[handleNext] Moving to next question:', response.next_question_number);
         setCurrentQuestionNumber(response.next_question_number);
+        setSelectedOption(null); // Clear selection for next question
         // Update status to in_progress if not already
         if (currentSession?.status === SessionStatus.CREATED) {
           updateSessionStatus(SessionStatus.IN_PROGRESS);
         }
+      } else if (response.next_question_number && response.next_question_number > 10) {
+        // Invalid next question number - navigate to report
+        console.log('[handleNext] Invalid next question number, navigating to report');
+        updateSessionStatus(SessionStatus.COMPLETED);
+        navigate(`/qchat/report/${token}`);
+      } else if (!response.next_question_number && currentQuestionNumber >= 10) {
+        // No next question and we're at the last question - navigate to report
+        console.log('[handleNext] Last question completed, navigating to report');
+        updateSessionStatus(SessionStatus.COMPLETED);
+        navigate(`/qchat/report/${token}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit answer');
@@ -172,55 +206,43 @@ const QChatAssessmentPage: React.FC = () => {
     }
   };
 
-  const handleChatAnswer = async (option: string, _confidence: number) => {
-    // Chat assistant extracted an answer - auto-submit it
+  const handleChatAnswer = (option: string, _confidence: number) => {
+    // Chat assistant extracted an answer - set it as selected on Q page for user to review
+    // User will press "Next" button to submit it
+    setSelectedOption(option);
+    // Save to history for navigation purposes
+    setAnswersHistory(prev => new Map(prev).set(currentQuestionNumber, option));
+  };
+
+  const handleQuestionUnanswered = (nextQuestionNumber?: number) => {
+    // Question was unanswered after max attempts - just move to next question without submitting
     if (!token) return;
 
-    setIsLoading(true);
-    setError(null);
+    console.log('[handleQuestionUnanswered]', { currentQuestionNumber, nextQuestionNumber });
 
-    try {
-      // Save answer to history
-      setAnswersHistory(prev => new Map(prev).set(currentQuestionNumber, option));
+    // Validate nextQuestionNumber - must be between 1 and 10, or null/undefined
+    const isValidNextQuestion = nextQuestionNumber !== undefined && 
+                                nextQuestionNumber !== null && 
+                                nextQuestionNumber >= 1 && 
+                                nextQuestionNumber <= 10;
+    
+    // Check if this is the last question (10) or if nextQuestionNumber is invalid
+    const isLastQuestion = currentQuestionNumber >= 10;
 
-      const response: QChatSubmitAnswerResponse = await qchatAPI.submitAnswer(token, {
-        question_number: currentQuestionNumber,
-        selected_option: option as QChatAnswerOption,
-      });
-
-      if (response.is_complete) {
-        // Assessment complete
-        updateSessionStatus(SessionStatus.COMPLETED);
-
-        // Fetch report to get final score and risk level
-        try {
-          const report = await qchatAPI.getReport(token);
-          let riskLevel: RiskLevel = RiskLevel.LOW;
-          if (report.risk_level === 'high') {
-            riskLevel = RiskLevel.HIGH;
-          } else if (report.risk_level === 'medium') {
-            riskLevel = RiskLevel.MEDIUM;
-          }
-          updateSessionScore(report.total_score, riskLevel);
-        } catch (err) {
-          console.error('Failed to fetch report after completion:', err);
-        }
-
-        // Navigate to report
-        navigate(`/qchat/report/${token}`);
-      } else if (response.next_question_number) {
-        // Move to next question
-        setCurrentQuestionNumber(response.next_question_number);
-        setSelectedOption(null); // Clear selection for next question
-        // Update status to in_progress if not already
-        if (currentSession?.status === SessionStatus.CREATED) {
-          updateSessionStatus(SessionStatus.IN_PROGRESS);
-        }
+    if (isLastQuestion || !isValidNextQuestion) {
+      // Last question or no valid next question - navigate to report
+      console.log('[handleQuestionUnanswered] Navigating to report', { isLastQuestion, isValidNextQuestion });
+      updateSessionStatus(SessionStatus.COMPLETED);
+      navigate(`/qchat/report/${token}`);
+    } else {
+      // Move to next question (validated to be 1-10)
+      console.log('[handleQuestionUnanswered] Moving to next question', nextQuestionNumber);
+      setCurrentQuestionNumber(nextQuestionNumber);
+      setSelectedOption(null); // Clear selection for next question
+      // Update status to in_progress if not already
+      if (currentSession?.status === SessionStatus.CREATED) {
+        updateSessionStatus(SessionStatus.IN_PROGRESS);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit answer');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -430,6 +452,7 @@ const QChatAssessmentPage: React.FC = () => {
         token={token || ''}
         language={(i18n.language === 'ar' ? 'ar' : 'en') as 'en' | 'ar'}
         onAnswerExtracted={handleChatAnswer}
+        onQuestionUnanswered={handleQuestionUnanswered}
       />
     </div>
   );

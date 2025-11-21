@@ -20,6 +20,7 @@ interface QChatAssistantModalProps {
   token: string;
   language: 'en' | 'ar';
   onAnswerExtracted: (option: string, confidence: number) => void;
+  onQuestionUnanswered?: (nextQuestionNumber?: number) => void;
 }
 
 export default function QChatAssistantModal({
@@ -29,6 +30,7 @@ export default function QChatAssistantModal({
   token,
   language,
   onAnswerExtracted,
+  onQuestionUnanswered,
 }: QChatAssistantModalProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -152,11 +154,21 @@ export default function QChatAssistantModal({
 
       // If answer was extracted, handle it
       if (data.is_complete && data.extracted_option) {
-        // Wait 2 seconds before closing to let user see the message
-        setTimeout(() => {
+        // Check if the question is unanswered
+        if (data.extracted_option === 'unanswered') {
+          // Unanswered - auto-proceed to next question after showing message
+          setTimeout(() => {
+            if (onQuestionUnanswered) {
+              onQuestionUnanswered(data.next_question_number);
+            }
+            onClose();
+          }, 2000);
+        } else {
+          // Valid answer extracted (A-E) - close modal and set it on Q page for user to review
+          // Don't auto-submit, let user press "Next" on Q page
           onAnswerExtracted(data.extracted_option!, data.confidence || 1.0);
           onClose();
-        }, 2000);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
