@@ -373,12 +373,6 @@ const ReportPage: React.FC = () => {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="py-4 text-center">
-          <p className="text-sm text-gray-500">
-            {t('home.copyright')}
-          </p>
-        </footer>
       </div>
     </div>
   );

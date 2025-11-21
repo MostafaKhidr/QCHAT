@@ -266,14 +266,6 @@ const ContactPage: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Footer */}
-      <footer className="py-4 px-4 bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-gray-500">
-            {t('home.copyright')}
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };
